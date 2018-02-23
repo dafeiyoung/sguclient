@@ -1,0 +1,60 @@
+#!/bin/sh /etc/rc.common
+START=99
+
+run_sguclient()
+{
+	local enable
+	config_get_bool enable $1 enable
+
+	if [ $enable ]; then
+		local autoreconnect
+		local username
+		local password
+		local isptype
+		local ifname
+		local wanip
+		
+		config_get_bool autoreconnect $1 autoreconnect
+		config_get username $1 username
+		config_get password $1 password
+		config_get isptype $1 isptype
+		config_get ifname $1 ifname
+		config_get wanip $1 wanip
+		
+		while true
+		do
+			process=`pgrep sguclient`
+
+   			if [ -n "$process" ];then
+        		echo "sguclient is running, ignored..."
+   			else
+        		echo "sguclient not running, trying to start again..."
+
+        		#----To start sguclient
+                if [ $autoreconnect ]; then
+					sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip --auto &
+				else
+					sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip &
+				fi
+					echo "SGUClient has started."
+				#----
+
+   			fi
+
+   			sleep 60;
+
+		done  #end of while
+	fi
+}
+
+start()
+{
+	config_load sguclient
+	config_foreach run_sguclient login
+}
+
+stop()
+{
+	killall sguclient
+	echo "SGUClient has stoped."
+}
