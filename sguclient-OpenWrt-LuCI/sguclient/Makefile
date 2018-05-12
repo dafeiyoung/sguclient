@@ -1,8 +1,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=sguclient
-PKG_VERSION:=0.18
-PKG_RELEASE:=r0.18-luci
+PKG_VERSION:=0.19
+PKG_RELEASE:=r0.19-luci
 
 PKG_BUILD_DIR:= $(BUILD_DIR)/$(PKG_NAME)
 

@@ -19,7 +19,8 @@ s.addremove = false
 s.anonymous = true
 
 enable = s:option(Flag, "enable", translate("Enable"),translate("Main control of SGUClient"))
-enable = s:option(Flag, "autoreconnect", translate("Auto Reconnect"),translate("Reconnect while client has been off-line(Generally NO need)"))
+enable = s:option(Flag, "autoreconnect", translate("Auto Reconnect"),translate("Reconnect while client has been off-line(Generally NOT checked)"))
+enable = s:option(Flag, "noheartbeat", translate("No 1x Heart Beat"),translate("No 802.1x heart beat and cancel alarm(Generally NOT checked)"))
 name = s:option(Value, "username", translate("1x Username"),translate("Fill in your 802.1x username"))
 pass = s:option(Value, "password", translate("1x Password"),translate("Fill in your 802.1x password"))
 pass.password = true

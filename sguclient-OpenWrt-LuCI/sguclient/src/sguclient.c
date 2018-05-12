@@ -57,6 +57,7 @@ char         *user_ip = NULL;
 char         *user_mask = NULL;
 int           exit_flag = 0;
 int           auto_rec = 0;             /* 断线重拨 */
+int           timeout_alarm_1x = 1;
 int           reconnect_times = 0;      /* 超时重连次数 */
 
 /* #####   GLOBLE VAR DEFINITIONS   #########################
@@ -218,7 +219,7 @@ void auto_reconnect(int sleep_time_sec)
  */
 void time_out_handler()
 {
-    printf("SGUClient wait package response time out！\nCheck your physical network connection!\n");
+    printf("SGUClient wait package response time out! \nCheck your physical network connection!\n");
     if ( reconnect_times >= 5 )  //重连次数超过5次
     {
         printf("SGUClient tried reconnect more than 5 times, but all failed.\n");
@@ -270,6 +271,8 @@ void show_usage()
             "\t--random              Use random UDP client port during Drcom authentication.\n"
             "\t                      Sguclient will generate a random client port to replace 61440.\n"
             "\t                      Only effect the client. Server port will not be affected.\n\n"
+            "\t--noheartbeat         Disable timeout alarm clock when waiting for next 802.1x package.\n"
+            "\t                      Timeout should be disabled if there is NO 802.1x heart beat package.\n\n"
 
             "\t--ip                  Specify your IPv4 address.\n"
             "\t                      It only takes effect when sguclient can not correctly get IP address.\n\n"
@@ -593,7 +596,13 @@ void send_eap_packet(enum EAPType send_type)
                           //电信response/identity发包部分
                           frame_data = eap_response_ident;
                           frame_length=96;
-                          alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
+                          if (0 == timeout_alarm_1x)
+                          {
+                            alarm(0);
+                          }
+                          else{
+                            alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
+                          }
                           fprintf(stdout, ">>Protocol: <CTCC>SEND EAP-Response/Identity\n");
                           break;
 
@@ -601,7 +610,13 @@ void send_eap_packet(enum EAPType send_type)
                           //移动response/identity发包部分
                           frame_data = eap_response_ident_YD;
                           frame_length = 60;
-                          alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
+                          if (0 == timeout_alarm_1x)
+                          {
+                            alarm(0);
+                          }
+                          else{
+                            alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
+                          }
                           fprintf(stdout, ">>Protocol: <CMCC>SEND EAP-Response/Identity\n");
                           break;
 
@@ -617,15 +632,27 @@ void send_eap_packet(enum EAPType send_type)
                     case 'D':
                           //电信response/md5_challenge发包部分
                           frame_data = eap_response_md5ch;
-                          frame_length=96;
-                          alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
+                          frame_length = 96;
+                          if (0 == timeout_alarm_1x)
+                          {
+                            alarm(0);
+                          }
+                          else{
+                            alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
+                          }
                           fprintf(stdout, ">>Protocol: <CTCC>SEND EAP-Response/Md5-Challenge\n");
                           break;
                     case 'Y':
                           //移动response/md5_challenge发包部分
                           frame_data = eap_response_md5ch_YD;
                           frame_length = 60;
-                          alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
+                          if (0 == timeout_alarm_1x)
+                          {
+                            alarm(0);
+                          }
+                          else{
+                            alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
+                          }
                           fprintf(stdout, ">>Protocol: <CMCC>SEND EAP-Response/Md5-Challenge\n");
                           break;
                     default:fprintf(stdout, "Unknown ISP Type!\n");
@@ -641,14 +668,26 @@ void send_eap_packet(enum EAPType send_type)
                           //电信response_identity_keep_alive发包部分
                           frame_data = eapol_keepalive;
                           frame_length = 96;
-                          alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
+                          if (0 == timeout_alarm_1x)
+                          {
+                            alarm(0);
+                          }
+                          else{
+                            alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
+                          }
                           fprintf(stdout, ">>Protocol: <CTCC>SEND EAP_RESPONSE_IDENTITY_KEEP_ALIVE\n");
                           break;
                     case 'Y':
                           //移动response_identity_keep_alive发包部分
                           frame_data = eapol_keepalive_YD;
                           frame_length = 60;
-                          alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
+                          if (0 == timeout_alarm_1x)
+                          {
+                            alarm(0);
+                          }
+                          else{
+                            alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
+                          }
                           fprintf(stdout, ">>Protocol: <CMCC>SEND EAP_RESPONSE_IDENTITY_KEEP_ALIVE\n");
                           break;
                     default:fprintf(stdout, "Unknown ISP Type!\n");
@@ -815,9 +854,9 @@ void init_frames()
 
     /* EAP RESPONSE IDENTITY */
     u_char eap_resp_iden_head_YD[9] = {0x01, 0x00, 
-                                    0x00, 27 + username_length,  /* eapol_length */
+                                    0x00, 26 + username_length,  /* eapol_length */
                                     0x02, 0x2c, 
-                                    0x00, 27 + username_length,       /* eap_length */
+                                    0x00, 26 + username_length,       /* eap_length */
                                     0x01};
     char str1[2] = { '#', '0' };        //固定值
     char str2[6] = { '#', '4', '.', '1', '.', '9' };    //版本号
@@ -1086,19 +1125,25 @@ void init_device()
 void show_local_info ()
 {
     char buf[64];
-    char *is_auto_buf="No";
+    char *is_auto_buf="Disabled";
     char *isp_type_buf="Unknown";
-    if (auto_rec==1)
+    char *timeout_alarm_1x_buf = "Enabled";
+    if (1 == auto_rec)
     {
         is_auto_buf="Yes";
     }
-    if (isp_type=='D')
+    if ('D' == isp_type)
     {
         isp_type_buf="China Telecom";
     }
-    if (isp_type=='Y')
+    if ('Y' == isp_type)
     {
         isp_type_buf="China Mobile";
+    }
+
+    if (0 == timeout_alarm_1x)
+    {
+        timeout_alarm_1x_buf = "Disabled";
     }
 
     printf("######## SGUClient  %s ####\n", SGU_VER);
@@ -1116,6 +1161,7 @@ void show_local_info ()
     {
         printf("Using UDP Port: %d\n", clientPort);
     }
+    printf("1x Timeout Alarm: %s\n", timeout_alarm_1x_buf);
     printf("#####################################\n");
 }
 
@@ -1131,19 +1177,20 @@ void init_arguments(int *argc, char ***argv)
     /* Option struct for progrm run arguments */
     static struct option long_options[] =
         {
-        {"help",        no_argument,        0,              'h'},
-        {"background",  no_argument,        &background,    1},
-        {"auto",        no_argument,        &auto_rec,      1},
-        {"device",      required_argument,  0,              2},
-        {"random",    no_argument,        0,                'r'},
-        {"username",    required_argument,  0,              'u'},
-        {"password",    required_argument,  0,              'p'},
-        {"isp",         required_argument,  0,              'i'},
-        {"ip",          required_argument,  0,              4},
-        {"mask",        required_argument,  0,              5},
-        {"gateway",     required_argument,  0,              'g'},
-        {"showinfo",    no_argument,        0,              's'},
-        {"dns",         required_argument,  0,              'd'},
+        {"help",        no_argument,        0,                     'h'},
+        {"background",  no_argument,        &background,             1},
+        {"auto",        no_argument,        &auto_rec,               1},
+        {"noheartbeat", no_argument,        &timeout_alarm_1x,       0},
+        {"device",      required_argument,  0,                       2},
+        {"random",      no_argument,        0,                     'r'},
+        {"username",    required_argument,  0,                     'u'},
+        {"password",    required_argument,  0,                     'p'},
+        {"isp",         required_argument,  0,                     'i'},
+        {"ip",          required_argument,  0,                       4},
+        {"mask",        required_argument,  0,                       5},
+        {"gateway",     required_argument,  0,                     'g'},
+        {"showinfo",    no_argument,        0,                     's'},
+        {"dns",         required_argument,  0,                     'd'},
         {0, 0, 0, 0}
         };
     clientPort = 61440;  //初始化时，客户端默认使用61440端口，若启用random则再产生随机端口来替换

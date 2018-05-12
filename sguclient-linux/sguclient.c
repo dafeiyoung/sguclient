@@ -596,7 +596,13 @@ void send_eap_packet(enum EAPType send_type)
                           //电信response/identity发包部分
                           frame_data = eap_response_ident;
                           frame_length=96;
-                          alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
+                          if (0 == timeout_alarm_1x)
+                          {
+                            alarm(0);
+                          }
+                          else{
+                            alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
+                          }
                           fprintf(stdout, ">>Protocol: <CTCC>SEND EAP-Response/Identity\n");
                           break;
 
@@ -604,7 +610,13 @@ void send_eap_packet(enum EAPType send_type)
                           //移动response/identity发包部分
                           frame_data = eap_response_ident_YD;
                           frame_length = 60;
-                          alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
+                          if (0 == timeout_alarm_1x)
+                          {
+                            alarm(0);
+                          }
+                          else{
+                            alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
+                          }
                           fprintf(stdout, ">>Protocol: <CMCC>SEND EAP-Response/Identity\n");
                           break;
 
@@ -620,15 +632,27 @@ void send_eap_packet(enum EAPType send_type)
                     case 'D':
                           //电信response/md5_challenge发包部分
                           frame_data = eap_response_md5ch;
-                          frame_length=96;
-                          alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
+                          frame_length = 96;
+                          if (0 == timeout_alarm_1x)
+                          {
+                            alarm(0);
+                          }
+                          else{
+                            alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
+                          }
                           fprintf(stdout, ">>Protocol: <CTCC>SEND EAP-Response/Md5-Challenge\n");
                           break;
                     case 'Y':
                           //移动response/md5_challenge发包部分
                           frame_data = eap_response_md5ch_YD;
                           frame_length = 60;
-                          alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
+                          if (0 == timeout_alarm_1x)
+                          {
+                            alarm(0);
+                          }
+                          else{
+                            alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
+                          }
                           fprintf(stdout, ">>Protocol: <CMCC>SEND EAP-Response/Md5-Challenge\n");
                           break;
                     default:fprintf(stdout, "Unknown ISP Type!\n");
@@ -644,14 +668,26 @@ void send_eap_packet(enum EAPType send_type)
                           //电信response_identity_keep_alive发包部分
                           frame_data = eapol_keepalive;
                           frame_length = 96;
-                          alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
+                          if (0 == timeout_alarm_1x)
+                          {
+                            alarm(0);
+                          }
+                          else{
+                            alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
+                          }
                           fprintf(stdout, ">>Protocol: <CTCC>SEND EAP_RESPONSE_IDENTITY_KEEP_ALIVE\n");
                           break;
                     case 'Y':
                           //移动response_identity_keep_alive发包部分
                           frame_data = eapol_keepalive_YD;
                           frame_length = 60;
-                          alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
+                          if (0 == timeout_alarm_1x)
+                          {
+                            alarm(0);
+                          }
+                          else{
+                            alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
+                          }
                           fprintf(stdout, ">>Protocol: <CMCC>SEND EAP_RESPONSE_IDENTITY_KEEP_ALIVE\n");
                           break;
                     default:fprintf(stdout, "Unknown ISP Type!\n");
@@ -818,9 +854,9 @@ void init_frames()
 
     /* EAP RESPONSE IDENTITY */
     u_char eap_resp_iden_head_YD[9] = {0x01, 0x00, 
-                                    0x00, 27 + username_length,  /* eapol_length */
+                                    0x00, 26 + username_length,  /* eapol_length */
                                     0x02, 0x2c, 
-                                    0x00, 27 + username_length,       /* eap_length */
+                                    0x00, 26 + username_length,       /* eap_length */
                                     0x01};
     char str1[2] = { '#', '0' };        //固定值
     char str2[6] = { '#', '4', '.', '1', '.', '9' };    //版本号

@@ -16,7 +16,7 @@ md5.o:md5.c
 public.o:public.c
 	$(CC) $(CFLAGS)  -c $<
 dprotocol.o:dprotocol.c
-	$(CC) $(CFLAGS)  -c -std=c99 $<
+	$(CC) $(CFLAGS)  -c $<
 
 .PHONY:clean
 clean:
