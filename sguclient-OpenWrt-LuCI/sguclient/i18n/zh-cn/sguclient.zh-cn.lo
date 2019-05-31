@@ -7,6 +7,9 @@ msgstr "启用"
 msgid "Auto Reconnect"
 msgstr "自动重连"
 
+msgid "No 1x Heart Beat"
+msgstr "不需要802.1x心跳"
+
 msgid "1x Username"
 msgstr "内网(校园网)账号"
 
@@ -25,8 +28,11 @@ msgstr "认证网卡的IP地址"
 msgid "Main control of SGUClient"
 msgstr "SGUClient总开关"
 
-msgid "Reconnect while client has been off-line(Generally NO need)"
+msgid "Reconnect while client has been off-line(Generally NOT checked)"
 msgstr "客户端离线时自动重连(一般不勾选)"
+
+msgid "No 802.1x heart beat and cancel alarm(Generally NOT checked)"
+msgstr "不需802.1x心跳并关闭超时闹钟(新宿舍苑专用, 其他苑一般不勾选)"
 
 msgid "Fill in your 802.1x username"
 msgstr "请填入你的内网账号"

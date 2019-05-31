@@ -15,6 +15,7 @@ run_sguclient()
 		local wanip
 		
 		config_get_bool autoreconnect $1 autoreconnect
+		config_get_bool noheartbeat $1 noheartbeat
 		config_get username $1 username
 		config_get password $1 password
 		config_get isptype $1 isptype
@@ -32,9 +33,17 @@ run_sguclient()
 
         		#----To start sguclient
                 if [ $autoreconnect ]; then
-					sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip --auto &
+					if [ $noheartbeat ]; then
+						sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip --auto --noheartbeat &
+					else
+						sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip --auto &
+					fi
 				else
-					sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip &
+					if [ $noheartbeat ]; then
+						sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip --noheartbeat &
+					else
+						sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip &
+					fi
 				fi
 					echo "SGUClient has started."
 				#----

@@ -43,7 +43,8 @@ static struct sockaddr_in drcomaddr;
 uint32_t drcom_crc32(char *data, int data_len)
 {
 	uint32_t ret = 0;
-	for (int i = 0; i < data_len;) {
+	int i = 0;
+	for (i = 0; i < data_len;) {
 		ret ^= *(unsigned int *) (data + i);
 		ret &= 0xFFFFFFFF;
 		i += 4;
@@ -106,6 +107,8 @@ int send_login_auth()
 
 	memset(pkt_data, 0, pkt_data_len);
 	int data_index = 0;
+
+	int i = 0;
 
 	// header
 	pkt_data[data_index++] = 0x07;	// Code
@@ -222,7 +225,7 @@ int send_login_auth()
 #endif
 
 	unsigned char *keepalive_info = revData + 16;
-	for (int i = 0; i < 16; i++) 
+	for (i = 0; i < 16; i++) 
 	{
 		drcom_keepalive_info2[i] = (unsigned char) ((keepalive_info[i] << (i & 0x07)) + (keepalive_info[i] >> (8 - (i & 0x07))));
 	}
