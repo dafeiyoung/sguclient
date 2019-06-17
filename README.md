@@ -7,17 +7,6 @@
 <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SGUClient内置2套拨号协议，所以在全校、全网应该都可以正常使用。准确来说，兼容电信和移动网络，兼容南区、北区和西区网络，兼容Drcom拨号器和新旧小蝴蝶拨号器。但黄田坝校区和紫藤苑未经实地测试。
 <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;现在SGUClient也有了LuCI图形化配置页面，所以在OpenWrt路由器上使用SGUClient或许是一个不错的选择。
 
-## Change Log
-###release0.19(2018.05.12)###
-<br>1. 修正了移动802.1x协议的Body Length，解决failure问题。
-<br>2. 添加无闹钟功能，支持樱花苑等新宿舍。
-<br>3. 更新后的代码放在develop分支。请务必切换分支再取代码。
-<br>
-###release0.18(2017.11.25)###
-<br>1. 加入LuCI配置页。
-<br>2. 同步移动网拨号协议到最新版移动小蝴蝶拨号器协议（2017.9更新的新版本小蝴蝶协议）。
-<br>3. 同步电信网协议到最新电信协议（~~离校前一晚赶工改的，没有时间做大量测试，如果不稳定请联系我~~&nbsp;&nbsp;更新：开学这几天已经有五六十人安装了，他们反映说还是很稳的）。
-
 ## 快速上手
 * [Ubuntu使用SGUClient](https://github.com/dafeiyoung/sguclient/wiki/Ubuntu%E4%BD%BF%E7%94%A8SGUClient)<br>
 * [OpenWrt(路由器)使用SGUClient](https://github.com/dafeiyoung/sguclient/wiki/OpenWrt(%E8%B7%AF%E7%94%B1%E5%99%A8)%E4%BD%BF%E7%94%A8SGUClient)<br>
