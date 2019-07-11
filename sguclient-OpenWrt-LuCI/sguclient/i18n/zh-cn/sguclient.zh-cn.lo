@@ -19,7 +19,7 @@ msgstr "内网(校园网)密码"
 msgid "ISP Type"
 msgstr "网络运营商类型"
 
-msgid "Interface"
+msgid "AuthInterface"
 msgstr "认证网卡"
 
 msgid "Wan IP Address"
@@ -28,7 +28,7 @@ msgstr "认证网卡的IP地址"
 msgid "Main control of SGUClient"
 msgstr "SGUClient总开关"
 
-msgid "Reconnect while client has been off-line(Generally NOT checked)"
+msgid "Reconnect if client went off-line(Generally NOT checked)"
 msgstr "客户端离线时自动重连(一般不勾选)"
 
 msgid "No 802.1x heart beat and cancel alarm(Generally NOT checked)"
@@ -52,5 +52,5 @@ msgstr "移动"
 msgid "Chose your authentication interface"
 msgstr "请选择你的内网认证网卡"
 
-msgid "Authentication interface IP address(must be the same as which filled in 'Network-Interfaces')"
-msgstr "请填写上述认证网卡的实际IP地址(务必要和‘网络-接口’里填写的完全一样)"
+msgid "Authentication interface IPv4 address(must be the same as which filled in 'Network-Interfaces')"
+msgstr "请填写上述认证网卡的实际IPv4地址(务必要和‘网络-接口’里填写的完全一样)"
