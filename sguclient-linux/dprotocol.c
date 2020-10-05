@@ -356,7 +356,7 @@ int send_alive_begin()		//keepalive
 
 	pkt_data[data_index++] = 0xff;	// Code
 
-	memcpy(pkt_data + data_index, drcom_keepalive_info, 16);
+	memcpy(pkt_data + data_index, drcom_keepalive_info, 4);
 	data_index += 19;
 
 	memcpy(pkt_data + data_index, drcom_keepalive_info2, 16);

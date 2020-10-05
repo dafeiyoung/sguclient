@@ -50,7 +50,7 @@
 #include "dprotocol.h"
 
 /* SGUClient Version */
-#define SGU_VER "release 0.19"
+#define SGU_VER "release 0.20"
 
 /* default snap length (maximum bytes per packet to capture) */
 #define SNAP_LEN 1518
