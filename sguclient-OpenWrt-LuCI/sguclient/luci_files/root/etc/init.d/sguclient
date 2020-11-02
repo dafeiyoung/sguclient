@@ -22,37 +22,38 @@ run_sguclient()
 		config_get ifname $1 ifname
 		config_get wanip $1 wanip
 		
-		while true
-		do
-			process=`pgrep sguclient`
+		process=`pgrep sguclient`
 
-   			if [ -n "$process" ];then
-        		echo "sguclient is running, ignored..."
-   			else
-        		echo "sguclient not running, trying to start again..."
+		if [ -n "$process" ];then
+			echo "sguclient is running, ignored..."
+		else
+			echo "sguclient not running, trying to start again..."
 
-        		#----To start sguclient
-                if [ $autoreconnect ]; then
-					if [ $noheartbeat ]; then
-						sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip --auto --noheartbeat &
-					else
-						sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip --auto &
-					fi
-				else
-					if [ $noheartbeat ]; then
-						sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip --noheartbeat &
-					else
-						sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip &
-					fi
-				fi
-					echo "SGUClient has started."
-				#----
+			local filePath="/etc/crontabs/sguclient"
+			if [ ! -e "$filePath" ];then
+				touch $filePath
+			fi
+			
+			local argconfig
 
-   			fi
+			#----To start sguclient
+			if [ $autoreconnect ]; then
+				argconfig="--auto"
+			fi
 
-   			sleep 60;
+			if [ $noheartbeat ]; then
+				argconfig="$argconfig --noheartbeat"
+			fi
 
-		done  #end of while
+			sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip $argconfig
+			echo "*/1 * * * * sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip $argconfig" > /etc/crontabs/sguclient
+			
+			echo "SGUClient has started."
+			#----
+
+		fi
+	else
+		rm -rf /etc/crontabs/sguclient
 	fi
 }
 
@@ -65,5 +66,6 @@ start()
 stop()
 {
 	killall sguclient
+	rm -rf /etc/crontabs/sguclient
 	echo "SGUClient has stoped."
 }
