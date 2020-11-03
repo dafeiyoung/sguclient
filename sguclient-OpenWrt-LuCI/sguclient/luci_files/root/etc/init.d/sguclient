@@ -34,7 +34,7 @@ run_sguclient()
 				touch $filePath
 			fi
 			
-			local argconfig
+			local argconfig=""
 
 			#----To start sguclient
 			if [ $autoreconnect ]; then
