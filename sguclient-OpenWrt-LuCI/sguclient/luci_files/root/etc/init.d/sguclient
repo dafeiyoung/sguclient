@@ -28,11 +28,6 @@ run_sguclient()
 			echo "sguclient is running, ignored..."
 		else
 			echo "sguclient not running, trying to start again..."
-
-			local filePath="/etc/crontabs/sguclient"
-			if [ ! -e "$filePath" ];then
-				touch $filePath
-			fi
 			
 			local argconfig=""
 
@@ -45,15 +40,16 @@ run_sguclient()
 				argconfig="$argconfig --noheartbeat"
 			fi
 
-			sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip $argconfig
-			echo "*/1 * * * * sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip $argconfig" > /etc/crontabs/sguclient
+			sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip $argconfig &
+			echo "*/1 * * * * sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip $argconfig" >> /etc/crontabs/root
 			
 			echo "SGUClient has started."
 			#----
 
 		fi
 	else
-		rm -rf /etc/crontabs/sguclient
+		sed -i '/sguclient/d' /etc/crontabs/root
+		sed -i '/^$/d' /etc/crontabs/root
 	fi
 }
 
@@ -66,6 +62,7 @@ start()
 stop()
 {
 	killall sguclient
-	rm -rf /etc/crontabs/sguclient
+	sed -i '/sguclient/d' /etc/crontabs/root
+	sed -i '/^$/d' /etc/crontabs/root
 	echo "SGUClient has stoped."
 }
