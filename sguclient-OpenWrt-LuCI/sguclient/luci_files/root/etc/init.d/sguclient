@@ -39,7 +39,13 @@ run_sguclient()
 			if [ $noheartbeat ]; then
 				argconfig="$argconfig --noheartbeat"
 			fi
-
+			
+			# Many guard scripts are generated due to unknown reasons
+			# add the following code to prevent it
+			sed -i '/sguclient/d' /etc/crontabs/root
+			sed -i '/^$/d' /etc/crontabs/root
+			
+			# if active then create guard scripts
 			sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip $argconfig &
 			echo "*/1 * * * * sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip $argconfig" >> /etc/crontabs/root
 			
@@ -48,6 +54,7 @@ run_sguclient()
 
 		fi
 	else
+		# else delete guard scripts 
 		sed -i '/sguclient/d' /etc/crontabs/root
 		sed -i '/^$/d' /etc/crontabs/root
 	fi
