@@ -40,23 +40,24 @@ run_sguclient()
 				argconfig="$argconfig --noheartbeat"
 			fi
 			
-			# Many guard scripts are generated due to unknown reasons
-			# add the following code to prevent it
-			sed -i '/sguclient/d' /etc/crontabs/root
-			sed -i '/^$/d' /etc/crontabs/root
+			rm -rf /etc/crontabs/root
 			
 			# if active then create guard scripts
 			sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip $argconfig &
 			echo "*/1 * * * * sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip $argconfig" >> /etc/crontabs/root
 			
+			# TODO:auto config network
+			# uci set network.wan.ipaddr=$wanip
+			# uci set network.netmask
+			# uci commit network
+			# /etc/init.d/network restart
+
 			echo "SGUClient has started."
 			#----
 
 		fi
 	else
-		# else delete guard scripts 
-		sed -i '/sguclient/d' /etc/crontabs/root
-		sed -i '/^$/d' /etc/crontabs/root
+		rm -rf /etc/crontabs/root
 	fi
 }
 
@@ -69,7 +70,6 @@ start()
 stop()
 {
 	killall sguclient
-	sed -i '/sguclient/d' /etc/crontabs/root
-	sed -i '/^$/d' /etc/crontabs/root
+	rm -rf /etc/crontabs/root
 	echo "SGUClient has stoped."
 }
