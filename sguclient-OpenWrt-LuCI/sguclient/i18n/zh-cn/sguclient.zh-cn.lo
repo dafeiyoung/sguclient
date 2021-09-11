@@ -16,6 +16,12 @@ msgstr "内网(校园网)账号"
 msgid "1x Password"
 msgstr "内网(校园网)密码"
 
+msgid "extranet Username"
+msgstr "外网账号"
+
+msgid "extranet Password"
+msgstr "外网密码"
+
 msgid "ISP Type"
 msgstr "网络运营商类型"
 
@@ -38,6 +44,12 @@ msgid "Fill in your 802.1x username"
 msgstr "请填入你的内网账号"
 
 msgid "Fill in your 802.1x password"
+msgstr "请填入你的内网密码"
+
+msgid "Fill in your extranet username"
+msgstr "请填入你的内网账号"
+
+msgid "Fill in your extranet password"
 msgstr "请填入你的内网密码"
 
 msgid "Chose your ISP Type"

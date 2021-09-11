@@ -25,6 +25,10 @@ name = s:option(Value, "username", translate("1x Username"),translate("Fill in y
 pass = s:option(Value, "password", translate("1x Password"),translate("Fill in your 802.1x password"))
 pass.password = true
 
+-- extranetName = s:option(Value, "extranetUsername", translate("extranet Username"),translate("Fill in your extranet username"))
+-- extranetPass = s:option(Value, "extranetPassword", translate("extranet Password"),translate("Fill in your extranet password"))
+-- extranetPass.password = true
+
 isptype=s:option(ListValue,"isptype",translate("ISP Type"),translate("Chose your ISP Type"))
 isptype:value("D",translate("CTCC(DX)"))
 isptype:value("Y",translate("CMCC(YD)")) 
