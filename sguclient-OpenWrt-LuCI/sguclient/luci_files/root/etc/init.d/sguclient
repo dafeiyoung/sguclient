@@ -44,15 +44,13 @@ run_sguclient()
 			
 			rm -rf /etc/crontabs/root
 			
-			# if active then create guard scripts
-			sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip $argconfig &
-			echo "*/1 * * * * sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip $argconfig" >> /etc/crontabs/root
-			
 			# TODO:auto config network
 			local extranetUsername
 			local extranetPassword
+			local macAddr
 			config_get extranetUsername $1 extranetUsername
 			config_get extranetPassword $1 extranetPassword
+			config_get macAddr $1 macAddr
 			# wan interface
 			uci set network.wan.ifname=$ifname
 			uci set network.wan._orig_ifname=$ifname
@@ -88,8 +86,15 @@ run_sguclient()
 			uci set network.wan6.username=$extranetUsername
 			uci set network.wan6.password=$extranetPassword
 
+			# mac
+			uci set network.wan_dev.macaddr=$macAddr
+
 			uci commit network
 			/etc/init.d/network restart
+
+			# if active then create guard scripts
+			sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip $argconfig &
+			echo "*/1 * * * * sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip $argconfig" >> /etc/crontabs/root
 
 			echo "SGUClient has started."
 			#----

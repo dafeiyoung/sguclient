@@ -29,6 +29,9 @@ extranetName = s:option(Value, "extranetUsername", translate("extranet Username"
 extranetPass = s:option(Value, "extranetPassword", translate("extranet Password"),translate("Fill in your extranet password"))
 extranetPass.password = true
 
+macAddr = s:option(Value, "macAddr", translate("mac address"),translate("Fill in your Bound MAC address"))
+macAddr.datatype = "macaddr"
+
 isptype=s:option(ListValue,"isptype",translate("ISP Type"),translate("Chose your ISP Type"))
 isptype:value("D",translate("CTCC(DX)"))
 isptype:value("Y",translate("CMCC(YD)")) 
