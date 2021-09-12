@@ -13,8 +13,7 @@ run_sguclient()
 		local isptype
 		local ifname
 		local wanip
-		# local extranetUsername
-		# local extranetPassword
+
 		
 		config_get_bool autoreconnect $1 autoreconnect
 		config_get_bool noheartbeat $1 noheartbeat
@@ -23,8 +22,7 @@ run_sguclient()
 		config_get isptype $1 isptype
 		config_get ifname $1 ifname
 		config_get wanip $1 wanip
-		# config_get extranetUsername $1 extranetUsername
-		# config_get extranetPassword $1 extranetPassword
+
 		
 		process=`pgrep sguclient`
 
@@ -51,38 +49,47 @@ run_sguclient()
 			echo "*/1 * * * * sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip $argconfig" >> /etc/crontabs/root
 			
 			# TODO:auto config network
-
+			local extranetUsername
+			local extranetPassword
+			config_get extranetUsername $1 extranetUsername
+			config_get extranetPassword $1 extranetPassword
 			# wan interface
-			# uci set network.wan.ifname=$ifname
-			# uci set network.wan._orig_ifname=$ifname
-			# uci set network.wan._orig_bridge='false'
-			# uci set network.wan.proto='static'
-			# uci set network.wan.ipaddr=$wanip
-			# uci set network.wan.netmask='255.255.255.0'
-			# uci set network.wan.gateway=$(echo $wanip|cut -d . -f1-3).254
+			uci set network.wan.ifname=$ifname
+			uci set network.wan._orig_ifname=$ifname
+			uci set network.wan._orig_bridge='false'
+			uci set network.wan.proto='static'
+			uci set network.wan.ipaddr=$wanip
+			uci set network.wan.netmask='255.255.255.0'
+			uci set network.wan.gateway=$(echo $wanip|cut -d . -f1-3).254
 
-			# route1
-			# uci add network route
-			# uci set network.@route[-1].interface='wan'
-			# uci set network.@route[-1].target='210.38.0.0'
-			# uci set network.@route[-1].netmask='255.255.255.0'
-			# uci set network.@route[-1].gateway=$(echo $wanip|cut -d . -f1-3).254
+			hasRoute=$(uci get network.@route[0])
+			if [ "$hasRoute" != "route" ];then
+				# route1
+				uci add network route
+				uci set network.@route[-1].interface='wan'
+				uci set network.@route[-1].target='210.38.0.0'
+				uci set network.@route[-1].netmask='255.255.255.0'
+				uci set network.@route[-1].gateway=$(echo $wanip|cut -d . -f1-3).254
 
-			# route2
-			# uci add network route
-			# uci set network.@route[-1].interface='wan'
-			# uci set network.@route[-1].target='192.168.0.0'
-			# uci set network.@route[-1].netmask='255.255.255.0'
-			# uci set network.@route[-1].gateway=$(echo $wanip|cut -d . -f1-3).254
+				# route2
+				uci add network route
+				uci set network.@route[-1].interface='wan'
+				uci set network.@route[-1].target='192.168.0.0'
+				uci set network.@route[-1].netmask='255.255.255.0'
+				uci set network.@route[-1].gateway=$(echo $wanip|cut -d . -f1-3).254
+			fi
 
 			# extranet
-			# uci set network.wan6.ifname=$ifname
-			# uci set network.wan6._orig_ifname=$ifname
-			# uci set network.wan6._orig_bridge='false'
-			# uci set network.wan6.proto='pppoe'
-			# uci set network.wan6.ipv6='auto'
-			# uci set network.wan6.password=$extranetUsername
-			# uci set network.wan6.username=$extranetPassword
+			uci set network.wan6.ifname=$ifname
+			uci set network.wan6._orig_ifname=$ifname
+			uci set network.wan6._orig_bridge='false'
+			uci set network.wan6.proto='pppoe'
+			uci set network.wan6.ipv6='auto'
+			uci set network.wan6.username=$extranetUsername
+			uci set network.wan6.password=$extranetPassword
+
+			uci commit network
+			/etc/init.d/network restart
 
 			echo "SGUClient has started."
 			#----
@@ -97,8 +104,6 @@ start()
 {
 	config_load sguclient
 	config_foreach run_sguclient login
-	# uci commit network
-	# /etc/init.d/network restart
 }
 
 stop()

@@ -47,10 +47,10 @@ msgid "Fill in your 802.1x password"
 msgstr "请填入你的内网密码"
 
 msgid "Fill in your extranet username"
-msgstr "请填入你的内网账号"
+msgstr "请填入你的外网账号"
 
 msgid "Fill in your extranet password"
-msgstr "请填入你的内网密码"
+msgstr "请填入你的外网密码"
 
 msgid "Chose your ISP Type"
 msgstr "选择你的实际网络运营商类型"
