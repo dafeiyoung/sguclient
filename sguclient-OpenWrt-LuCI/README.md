@@ -51,5 +51,5 @@ config interface 'wan'
 
 4. 剩余makefile已写好无需修改
 
-   > 参考[这个文章]([(1条消息) OpenWrt Luci编写小技巧_lvshaorong的博客-CSDN博客](https://blog.csdn.net/lvshaorong/article/details/54925266))技巧十四
+   > 参考[这个文章](https://blog.csdn.net/lvshaorong/article/details/54925266)技巧十四
 
