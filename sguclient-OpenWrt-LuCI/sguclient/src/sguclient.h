@@ -52,6 +52,15 @@
 /* SGUClient Version */
 #define SGU_VER "release 0.20"
 
+/* 内嵌Drcom协议版本
+ * 来自客户端主界面及
+ * 客户端Log文件夹中auth_log.txt的Build字段
+ */
+#define DRCOM_VER "Ver5.2.1(20190905)"
+
+/* 打包时间*/
+#define RELEASE_DATE "2020-10"
+
 /* default snap length (maximum bytes per packet to capture) */
 #define SNAP_LEN 1518
 

@@ -254,7 +254,7 @@ void show_usage()
             "SGUClient %s \n"
             "\t  -- Supllicant for ShaoGuan University 802.1x Authentication.\n"
             "\t  -- A client can be used on the whole campus.\n"
-            "\t     Drcom UDP protocol authentication included(Drcom 5.1.1 X,U62.R110908).\n"
+            "\t     Drcom UDP protocol authentication included(%s).\n"
             "\n"
             "  Usage:\n"
             "\tRun under root privilege, usually by `sudo', with your \n"
@@ -296,8 +296,8 @@ void show_usage()
             "\tiontship with ShaoGuan University or any other company.\n\n\n"
 
             "\tBug Report? Please join our QQ group: 638138948\n"
-            "\t\t\t\t\t\t\t\t2015-09-13\n",
-            SGU_VER);
+            "\t\t\t\t\t\t\t\t%s\n",
+            SGU_VER,DRCOM_VER,RELEASE_DATE);
 }
 
 
