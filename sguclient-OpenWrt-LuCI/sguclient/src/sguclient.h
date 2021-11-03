@@ -59,7 +59,7 @@
 #define DRCOM_VER "Ver5.2.1(20190905)"
 
 /* 打包时间*/
-#define RELEASE_DATE "2020-10"
+#define RELEASE_DATE "2021-10"
 
 /* default snap length (maximum bytes per packet to capture) */
 #define SNAP_LEN 1518

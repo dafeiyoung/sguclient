@@ -1,0 +1,3 @@
+D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/CMakeFiles/sguclient.dir
+D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/CMakeFiles/edit_cache.dir

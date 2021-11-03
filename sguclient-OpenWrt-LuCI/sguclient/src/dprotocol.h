@@ -41,7 +41,7 @@
 #define RETRY_TIME 15
 
 
-int drcom_pkt_id;
+int drcom_pkt_id; //todo 这个会溢出吗？
 int dstatus;
 char dstatusMsg[256];
 

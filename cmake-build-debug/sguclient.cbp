@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="sguclient"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="D:/Users/11096/CLionProjects/sguclient/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/mingw32-make.exe -f &quot;D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/mingw32-make.exe -f &quot;D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/mingw32-make.exe -f &quot;D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/mingw32-make.exe -f &quot;D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="D:/Users/11096/CLionProjects/sguclient/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/mingw32-make.exe -f &quot;D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/mingw32-make.exe -f &quot;D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/mingw32-make.exe -f &quot;D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/mingw32-make.exe -f &quot;D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="sguclient">
+				<Option output="D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/sguclient.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="D:/Users/11096/CLionProjects/sguclient/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="D:/Users/11096/CLionProjects/sguclient/sguclient-OpenWrt-LuCI/sguclient/src"/>
+					<Add directory="F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/8.1.0/include"/>
+					<Add directory="F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/8.1.0/include-fixed"/>
+					<Add directory="F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/8.1.0/../../../../x86_64-w64-mingw32/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/mingw32-make.exe -f &quot;D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/Makefile&quot;  VERBOSE=1 sguclient"/>
+					<CompileFile command="F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/mingw32-make.exe -f &quot;D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/mingw32-make.exe -f &quot;D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/mingw32-make.exe -f &quot;D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="sguclient/fast">
+				<Option output="D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/sguclient.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="D:/Users/11096/CLionProjects/sguclient/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="D:/Users/11096/CLionProjects/sguclient/sguclient-OpenWrt-LuCI/sguclient/src"/>
+					<Add directory="F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/8.1.0/include"/>
+					<Add directory="F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/8.1.0/include-fixed"/>
+					<Add directory="F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/8.1.0/../../../../x86_64-w64-mingw32/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/mingw32-make.exe -f &quot;D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/Makefile&quot;  VERBOSE=1 sguclient/fast"/>
+					<CompileFile command="F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/mingw32-make.exe -f &quot;D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/mingw32-make.exe -f &quot;D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/mingw32-make.exe -f &quot;D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="D:/Users/11096/CLionProjects/sguclient/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/mingw32-make.exe -f &quot;D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/mingw32-make.exe -f &quot;D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/mingw32-make.exe -f &quot;D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/mingw32-make.exe -f &quot;D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="D:/Users/11096/CLionProjects/sguclient/sguclient-OpenWrt-LuCI/sguclient/src/dprotocol.c">
+			<Option target="sguclient"/>
+		</Unit>
+		<Unit filename="D:/Users/11096/CLionProjects/sguclient/sguclient-OpenWrt-LuCI/sguclient/src/dprotocol.h">
+			<Option target="sguclient"/>
+		</Unit>
+		<Unit filename="D:/Users/11096/CLionProjects/sguclient/sguclient-OpenWrt-LuCI/sguclient/src/main.c">
+			<Option target="sguclient"/>
+		</Unit>
+		<Unit filename="D:/Users/11096/CLionProjects/sguclient/sguclient-OpenWrt-LuCI/sguclient/src/md5.c">
+			<Option target="sguclient"/>
+		</Unit>
+		<Unit filename="D:/Users/11096/CLionProjects/sguclient/sguclient-OpenWrt-LuCI/sguclient/src/md5.h">
+			<Option target="sguclient"/>
+		</Unit>
+		<Unit filename="D:/Users/11096/CLionProjects/sguclient/sguclient-OpenWrt-LuCI/sguclient/src/public.c">
+			<Option target="sguclient"/>
+		</Unit>
+		<Unit filename="D:/Users/11096/CLionProjects/sguclient/sguclient-OpenWrt-LuCI/sguclient/src/public.h">
+			<Option target="sguclient"/>
+		</Unit>
+		<Unit filename="D:/Users/11096/CLionProjects/sguclient/sguclient-OpenWrt-LuCI/sguclient/src/sguclient.c">
+			<Option target="sguclient"/>
+		</Unit>
+		<Unit filename="D:/Users/11096/CLionProjects/sguclient/sguclient-OpenWrt-LuCI/sguclient/src/sguclient.h">
+			<Option target="sguclient"/>
+		</Unit>
+		<Unit filename="D:/Users/11096/CLionProjects/sguclient/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

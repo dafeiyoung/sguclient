@@ -43,8 +43,7 @@ static struct sockaddr_in drcomaddr;
 uint32_t drcom_crc32(char *data, int data_len)
 {
 	uint32_t ret = 0;
-	int i = 0;
-	for (i = 0; i < data_len;) {
+	for (int i = 0; i < data_len;) {
 		ret ^= *(unsigned int *) (data + i);
 		ret &= 0xFFFFFFFF;
 		i += 4;
@@ -105,71 +104,86 @@ int send_login_auth()
 	const int pkt_data_len = 244;
 	char pkt_data[pkt_data_len];
 
-	memset(pkt_data, 0, pkt_data_len);
-	int data_index = 0;
+    int data_index = 0;
+    int i = 0;
+    int user_id_length = strlen(user_id);
 
-	int i = 0;
+    ///////////////  下面开始构造U244  ///////////////
+    memset(pkt_data, 0, pkt_data_len);
+	/******************  Header  ******************/
 
-	// header
+	//0x00
 	pkt_data[data_index++] = 0x07;	// Code
 	pkt_data[data_index++] = 0x01;	//id
 	pkt_data[data_index++] = 0xf4;	//len(244低位)
 	pkt_data[data_index++] = 0x00;	//len(244高位)
 	pkt_data[data_index++] = 0x03;	//step 第几步
-	pkt_data[data_index++] = strlen(user_id);	//uid len  用户ID长度
+	pkt_data[data_index++] = user_id_length;	//uid len  用户ID长度
 
-	// mac
+    /*****************  Address  *****************/
+
+	//0x06 mac
 	memcpy(pkt_data + data_index, my_mac, 6);
 	data_index += 6;
 
-	// ip
+	//0x0c ip
 	memcpy(pkt_data + data_index, &my_ip.sin_addr, 4);
 	data_index += 4;
 
-	// fix(4B)
+	//0x10 fix(4B) 取决于软件版本
 	pkt_data[data_index++] = 0x02;
 	pkt_data[data_index++] = 0x22;
 	pkt_data[data_index++] = 0x00;
-	pkt_data[data_index++] = 0x28;  //changed from 0x2a to 0x28,but I do not know why.
+	pkt_data[data_index++] = 0x31;
 
-	// challenge
+    /*****************  Protocol  *****************/
+
+	//0x14 challenge
 	memcpy(pkt_data + data_index, drcom_challenge, 4);
+    pkt_data[data_index++] = 0xc7;
+    pkt_data[data_index++] = 0x2f;
+    pkt_data[data_index++] = 0x31;
+    pkt_data[data_index++] = 0x01;
+
+	//0x18 crc32(之后再填)
 	data_index += 4;
 
-	// crc32(后面再填)
-	pkt_data[data_index++] = 0xc7;
-	pkt_data[data_index++] = 0x2f;
-	pkt_data[data_index++] = 0x31;
-	pkt_data[data_index++] = 0x01;
+    //0x1c 从抓包里看的
+	pkt_data[data_index++] = 0x0f;
+	pkt_data[data_index++] = 0xbe;
+	pkt_data[data_index++] = 0xfe;
+	pkt_data[data_index++] = 0xfc;
 
-	// 做完crc32后，在把第一个字节置位0
-	pkt_data[data_index++] = 0x7e;
-	pkt_data[data_index++] = 0x00;
-	pkt_data[data_index++] = 0x00;
-	pkt_data[data_index++] = 0x00;
+    /*****************  Account  *****************/
 
-	// 0x0020  帐号 + 计算机名
-	int user_id_length = strlen(user_id);
+	// 0x20  帐号
 	memcpy(pkt_data + data_index, user_id, user_id_length);	
 	data_index += user_id_length;
+
+	//0x2b   计算机名
 	char temp[100];
-	memset(temp, 0, 100);
+	memset(temp, 0, 100); //也续这里可以改小一点
 	strcpy(temp, "PC-");
 	strcat(temp, user_id);
 	memcpy(pkt_data + data_index, temp, 32 - user_id_length);
 	data_index += (32 - user_id_length);
+    //TODO:这里不知道为什么是这个长度
 
-	//0x0040  dns 1 (114.114.114.114)
-	data_index += 12;
+	data_index += 12;//加上这个后偏移确实是对的
+
+    /*******************  Dns  *******************/
+	//0x4b  dns 1 (114.114.114.114)
 	pkt_data[data_index++] = 0x72;
 	pkt_data[data_index++] = 0x72;
 	pkt_data[data_index++] = 0x72;
 	pkt_data[data_index++] = 0x72;
 
-	//0x0050
+	//0x4f
 	data_index += 16;
 
-	//0x0060
+    /*******************  Fixed  *******************/
+
+	//0x5f 固定内容
 	pkt_data[data_index++] = 0x94;
 	data_index += 3;
 	pkt_data[data_index++] = 0x06;
@@ -179,30 +193,34 @@ int send_login_auth()
 	pkt_data[data_index++] = 0xf0;
 	pkt_data[data_index++] = 0x23;
 	data_index += 2;
-
-	//0x0070
 	pkt_data[data_index++] = 0x02;
 	data_index += 2;
 
-		char drcom_ver[12] =
-	    { 0x44, 0x72, 0x43, 0x4f, 0x4d, 0x00, 0xb8, 0x01, 0x28, 0x00,
-   0x00, 0x00 };
+	//0x73
+	char drcom_ver[12] =
+	    { 0x44, 0x72, 0x43, 0x4f, 0x4d, 0x00, 0xb8, 0x01, 0x31, 0x00,
+   0x00, 0x00 };// "DrCOM"+版本相关的东西
 	memcpy(pkt_data + data_index, drcom_ver, 12);
 	data_index += 12;
 
-	//0x0080
+	//0x7f
 	data_index += 16;
 
-	//0x0090
+	//0x8f
 	data_index += 32;
 
-	//0x00b0
+    //0xaf
 	data_index += 4;
-	char hashcode[] = "c0a5fb14fc037f53ce0cd21ef5f136b94e25d3d4";
-	memcpy(pkt_data + data_index, hashcode, 40);
+
+    //0xb3
+	char AuthModuleFileHash[] =
+	        "c9145cb8eb2a837692ab3f303f1a08167f3ff64b";  //AuthModuleFileHash from log file
+	memcpy(pkt_data + data_index, AuthModuleFileHash, 40);
 	data_index += 24;
 
-	memset(revData, 0, RECV_BUF_LEN);
+	//////  至此U224的主体构造完成，下面开始填充其CRC32段  //////
+
+	memset(revData, 0, RECV_BUF_LEN); //TODO:把这行往后移一点
 
 	unsigned int crc = drcom_crc32(pkt_data, pkt_data_len);
 #if DRCOM_DEBUG_ON > 0
@@ -249,9 +267,11 @@ int send_alive_pkt1()
 {
 	const int pkt_data_len = 40;
 	char pkt_data[pkt_data_len];
-
+    int data_index = 0;
 	memset(pkt_data, 0, pkt_data_len);
-	int data_index = 0;
+
+    ///////////////  下面开始构造U40  ///////////////
+
 	pkt_data[data_index++] = 0x07;	// Code
 	pkt_data[data_index++] = drcom_pkt_id; //id
 	pkt_data[data_index++] = 0x28;	//len(40低位)
@@ -262,11 +282,11 @@ int send_alive_pkt1()
 	pkt_data[data_index++] = 0xdc;	// Fixed Unknown
 	pkt_data[data_index++] = 0x02;
 
-	pkt_data[data_index++] = 0x00;	//每次加一个数
+	pkt_data[data_index++] = 0x00;	//每次加一个数//todo 这也没加啊
 	pkt_data[data_index++] = 0x00;
 
 	memcpy(pkt_data + 16, drcom_misc1_flux, 4);
-
+    ////////////////  至此U40构造完成  ////////////////
 	memset(revData, 0, RECV_BUF_LEN);
 	int revLen =
 	    udp_send_and_rev(pkt_data, pkt_data_len, revData);
