@@ -102,50 +102,50 @@ int start_request()
  */
 int send_login_auth()
 {
-    const int pkt_data_len = 244;
-    char pkt_data[pkt_data_len];
+	const int pkt_data_len = 244;
+	char pkt_data[pkt_data_len];
 
-    memset(pkt_data, 0, pkt_data_len);
-    int data_index = 0;
+	memset(pkt_data, 0, pkt_data_len);
+	int data_index = 0;
 
-    int i = 0;
+	int i = 0;
 
-    // header
-    pkt_data[data_index++] = 0x07;	// Code
-    pkt_data[data_index++] = 0x01;	//id
-    pkt_data[data_index++] = 0xf4;	//len(244低位)
-    pkt_data[data_index++] = 0x00;	//len(244高位)
-    pkt_data[data_index++] = 0x03;	//step 第几步
-    pkt_data[data_index++] = (strlen(user_id)&0xff);	//uid len  用户ID长度
+	// header
+	pkt_data[data_index++] = 0x07;	// Code
+	pkt_data[data_index++] = 0x01;	//id
+	pkt_data[data_index++] = 0xf4;	//len(244低位)
+	pkt_data[data_index++] = 0x00;	//len(244高位)
+	pkt_data[data_index++] = 0x03;	//step 第几步
+	pkt_data[data_index++] = (strlen(user_id)&0xff);	//uid len  用户ID长度
 
-    // 0x0006 mac
-    memcpy(pkt_data + data_index, my_mac, 6);
-    data_index += 6;
+	// 0x0006 mac
+	memcpy(pkt_data + data_index, my_mac, 6);
+	data_index += 6;
 
-    // 0x000C ip
-    memcpy(pkt_data + data_index, &my_ip.sin_addr, 4);
-    data_index += 4;
+	// 0x000C ip
+	memcpy(pkt_data + data_index, &my_ip.sin_addr, 4);
+	data_index += 4;
 
-    // 0x0010 fix-options(4B)
-    pkt_data[data_index++] = 0x02;
-    pkt_data[data_index++] = 0x22;
-    pkt_data[data_index++] = 0x00;
-    pkt_data[data_index++] = 0x31;
+	// 0x0010 fix-options(4B)
+	pkt_data[data_index++] = 0x02;
+	pkt_data[data_index++] = 0x22;
+	pkt_data[data_index++] = 0x00;
+	pkt_data[data_index++] = 0x31;
 
-    // 0x0014 challenge
-    memcpy(pkt_data + data_index, drcom_challenge, 4);
-    data_index += 4;
+	// 0x0014 challenge
+	memcpy(pkt_data + data_index, drcom_challenge, 4);
+	data_index += 4;
 
-    // 0x0018 checkSum
+	// 0x0018 checkSum
 
     GetU244CheckSum(drcom_challenge,sizeof (drcom_challenge),&pkt_data[data_index]);
-    data_index+=8;
+	data_index+=8;
 
-    // 0x0020  帐号 + 计算机名
-    int user_id_length = strlen(user_id);
-    memcpy(pkt_data + data_index, user_id, user_id_length);
-    data_index += user_id_length;
-    char *UserNameBuffer[11];
+	// 0x0020  帐号 + 计算机名
+	int user_id_length = strlen(user_id);
+	memcpy(pkt_data + data_index, user_id, user_id_length);	
+	data_index += user_id_length;
+	char *UserNameBuffer[11];
     memset(UserNameBuffer, 0, sizeof (UserNameBuffer));
 
     memcpy(UserNameBuffer,"LAPTOP-",strlen("LAPTOP-"));
@@ -153,17 +153,17 @@ int send_login_auth()
 
     memcpy(pkt_data[data_index],UserNameBuffer, sizeof (UserNameBuffer));
 
-    data_index += (32 - user_id_length);//用户名+设备名段总长为32
+	data_index += (32 - user_id_length);//用户名+设备名段总长为32
 
-    //0x0040  dns 1 (202.96.128.166)
-    //data_index += 12;  我看是不需要加这个了
-    pkt_data[data_index++] = 0xca;
+	//0x0040  dns 1 (202.96.128.166)
+	//data_index += 12;  我看是不需要加这个了
+	pkt_data[data_index++] = 0xca;
     pkt_data[data_index++] = 0x60;
-    pkt_data[data_index++] = 0x80;
-    pkt_data[data_index++] = 0xa6;
+	pkt_data[data_index++] = 0x80;
+	pkt_data[data_index++] = 0xa6;
 
-    //0x0050 dhcp server (全0）
-    data_index += 4;
+	//0x0050 dhcp server (全0）
+	data_index += 4;
 
     //0x0054 dns 2 (114.114.114.114)
     pkt_data[data_index++] = 0x72;
@@ -174,29 +174,29 @@ int send_login_auth()
     //0x0058 wins server 1/2 (totally useless)
     data_index+=8;
 
-    //0x0060  系统版本   由于DrCom客户端使用GetVersion的姿势不对，从Win8.1后获取到的永远是6.2.9200
-    pkt_data[data_index++] = 0x94;
-    data_index += 3;
-    pkt_data[data_index++] = 0x06;
-    data_index += 3;
-    pkt_data[data_index++] = 0x02;
-    data_index += 3;
-    pkt_data[data_index++] = 0xf0;
-    pkt_data[data_index++] = 0x23;
-    data_index += 2;
+	//0x0060  系统版本   由于DrCom客户端使用GetVersion的姿势不对，从Win8.1后获取到的永远是6.2.9200
+	pkt_data[data_index++] = 0x94;
+	data_index += 3;
+	pkt_data[data_index++] = 0x06;
+	data_index += 3;
+	pkt_data[data_index++] = 0x02;
+	data_index += 3;
+	pkt_data[data_index++] = 0xf0;
+	pkt_data[data_index++] = 0x23;
+	data_index += 2;
     pkt_data[data_index++] = 0x02;
     data_index += 3;
 
-    //0x0073 魔法值DrCOM
+	//0x0073 魔法值DrCOM
     char drcom_ver[] =
 	    { 'D', 'r', 'C', 'O', 'M', 0x00, 0xb8, 0x01, 0x28, 0x00};
     memcpy(pkt_data + data_index, drcom_ver, sizeof(drcom_ver));
 
     data_index += 54;
 
-    //0x00b4
-    char hashcode[] = "c9145cb8eb2a837692ab3f303f1a08167f3ff64b";
-    memcpy(pkt_data + data_index, hashcode, 40);
+	//0x00b4
+	char hashcode[] = "c9145cb8eb2a837692ab3f303f1a08167f3ff64b";
+	memcpy(pkt_data + data_index, hashcode, 40);
 
 
     /* //旧版U244校验码产生方式，已弃用
@@ -218,21 +218,23 @@ int send_login_auth()
 
     memset(revData, 0, RECV_BUF_LEN);
 
-    int revLen = udp_send_and_rev(pkt_data, pkt_data_len, revData);
+	int revLen =
+	    udp_send_and_rev(pkt_data, pkt_data_len, revData);
 #if DRCOM_DEBUG_ON > 0
 	print_hex_drcom(revData, revLen);
 #endif
 
-    unsigned char *keepalive_info = revData + 16;
-    for (i = 0; i < 16; i++)
-    {
-    	drcom_keepalive_info2[i] = (unsigned char) ((keepalive_info[i] << (i & 0x07)) + (keepalive_info[i] >> (8 - (i & 0x07))));
-    }
+	unsigned char *keepalive_info = revData + 16;
+	for (i = 0; i < 16; i++) 
+	{
+		drcom_keepalive_info2[i] = (unsigned char) ((keepalive_info[i] << (i & 0x07)) + (keepalive_info[i] >> (8 - (i & 0x07))));
+	}
 
 #if DRCOM_DEBUG_ON > 0
 	print_hex_drcom(drcom_keepalive_info2, 16);
 #endif
-    return 0;
+
+	return 0;
 }
 /*
  * ===  FUNCTION  ======================================================================
