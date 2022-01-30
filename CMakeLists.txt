@@ -1,17 +1,17 @@
 cmake_minimum_required(VERSION 3.19)
 project(sguclient C)
 
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD 17)
 
-include_directories(sguclient-OpenWrt-LuCI/sguclient/src)
+include_directories(sguclient-linux)
 
 add_executable(sguclient
-        sguclient-OpenWrt-LuCI/sguclient/src/dprotocol.c
-        sguclient-OpenWrt-LuCI/sguclient/src/dprotocol.h
-        sguclient-OpenWrt-LuCI/sguclient/src/main.c
-        sguclient-OpenWrt-LuCI/sguclient/src/md5.c
-        sguclient-OpenWrt-LuCI/sguclient/src/md5.h
-        sguclient-OpenWrt-LuCI/sguclient/src/public.c
-        sguclient-OpenWrt-LuCI/sguclient/src/public.h
-        sguclient-OpenWrt-LuCI/sguclient/src/sguclient.c
-        sguclient-OpenWrt-LuCI/sguclient/src/sguclient.h)
+        sguclient-linux/dprotocol.c
+        sguclient-linux/dprotocol.h
+        sguclient-linux/main.c
+        sguclient-linux/md5.c
+        sguclient-linux/md5.h
+        sguclient-linux/public.c
+        sguclient-linux/public.h
+        sguclient-linux/sguclient.c
+        sguclient-linux/sguclient.h)

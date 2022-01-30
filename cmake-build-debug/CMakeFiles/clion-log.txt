@@ -1,10 +1,4 @@
-C:\Users\11096\AppData\Local\JetBrains\Toolbox\apps\CLion\ch-0\211.7442.42\bin\cmake\win\bin\cmake.exe -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - MinGW Makefiles" D:\Users\11096\CLionProjects\sguclient
--- The C compiler identification is GNU 8.1.0
--- Detecting C compiler ABI info
--- Detecting C compiler ABI info - done
--- Check for working C compiler: F:/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin/gcc.exe - skipped
--- Detecting C compile features
--- Detecting C compile features - done
+"F:\Program Files\Jetbrains\CLion 2021.3.2\bin\cmake\win\bin\cmake.exe" -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - MinGW Makefiles" C:\Users\11096\CLionProjects\sguclient
 -- Configuring done
 -- Generating done
--- Build files have been written to: D:/Users/11096/CLionProjects/sguclient/cmake-build-debug
+-- Build files have been written to: C:/Users/11096/CLionProjects/sguclient/cmake-build-debug

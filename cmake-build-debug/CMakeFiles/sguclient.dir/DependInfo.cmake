@@ -1,20 +1,18 @@
+
+# Consider dependencies only in project.
+set(CMAKE_DEPENDS_IN_PROJECT_ONLY OFF)
+
 # The set of languages for which implicit dependencies are needed:
 set(CMAKE_DEPENDS_LANGUAGES
-  "C"
   )
-# The set of files for implicit dependencies of each language:
-set(CMAKE_DEPENDS_CHECK_C
-  "D:/Users/11096/CLionProjects/sguclient/sguclient-OpenWrt-LuCI/sguclient/src/dprotocol.c" "D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/CMakeFiles/sguclient.dir/sguclient-OpenWrt-LuCI/sguclient/src/dprotocol.c.obj"
-  "D:/Users/11096/CLionProjects/sguclient/sguclient-OpenWrt-LuCI/sguclient/src/main.c" "D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/CMakeFiles/sguclient.dir/sguclient-OpenWrt-LuCI/sguclient/src/main.c.obj"
-  "D:/Users/11096/CLionProjects/sguclient/sguclient-OpenWrt-LuCI/sguclient/src/md5.c" "D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/CMakeFiles/sguclient.dir/sguclient-OpenWrt-LuCI/sguclient/src/md5.c.obj"
-  "D:/Users/11096/CLionProjects/sguclient/sguclient-OpenWrt-LuCI/sguclient/src/public.c" "D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/CMakeFiles/sguclient.dir/sguclient-OpenWrt-LuCI/sguclient/src/public.c.obj"
-  "D:/Users/11096/CLionProjects/sguclient/sguclient-OpenWrt-LuCI/sguclient/src/sguclient.c" "D:/Users/11096/CLionProjects/sguclient/cmake-build-debug/CMakeFiles/sguclient.dir/sguclient-OpenWrt-LuCI/sguclient/src/sguclient.c.obj"
-  )
-set(CMAKE_C_COMPILER_ID "GNU")
 
-# The include file search paths:
-set(CMAKE_C_TARGET_INCLUDE_PATH
-  "../sguclient-OpenWrt-LuCI/sguclient/src"
+# The set of dependency files which are needed:
+set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "C:/Users/11096/CLionProjects/sguclient/sguclient-linux/dprotocol.c" "CMakeFiles/sguclient.dir/sguclient-linux/dprotocol.c.obj" "gcc" "CMakeFiles/sguclient.dir/sguclient-linux/dprotocol.c.obj.d"
+  "C:/Users/11096/CLionProjects/sguclient/sguclient-linux/main.c" "CMakeFiles/sguclient.dir/sguclient-linux/main.c.obj" "gcc" "CMakeFiles/sguclient.dir/sguclient-linux/main.c.obj.d"
+  "C:/Users/11096/CLionProjects/sguclient/sguclient-linux/md5.c" "CMakeFiles/sguclient.dir/sguclient-linux/md5.c.obj" "gcc" "CMakeFiles/sguclient.dir/sguclient-linux/md5.c.obj.d"
+  "C:/Users/11096/CLionProjects/sguclient/sguclient-linux/public.c" "CMakeFiles/sguclient.dir/sguclient-linux/public.c.obj" "gcc" "CMakeFiles/sguclient.dir/sguclient-linux/public.c.obj.d"
+  "C:/Users/11096/CLionProjects/sguclient/sguclient-linux/sguclient.c" "CMakeFiles/sguclient.dir/sguclient-linux/sguclient.c.obj" "gcc" "CMakeFiles/sguclient.dir/sguclient-linux/sguclient.c.obj.d"
   )
 
 # Targets to which this target links.
