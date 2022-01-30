@@ -17,7 +17,7 @@
  */
 
 #include "dprotocol.h"
-#include "public.h"
+
 
 char drcom_challenge[4];
 char drcom_keepalive_info[4];
@@ -35,7 +35,7 @@ static struct sockaddr_in drcomaddr;
 /*
  * ===  FUNCTION  ======================================================================
  *         Name:  drcom_crc32
- *  Description:  计算drcom协议中的crc校验值
+ *  Description:  计算drcom协议中的crc校验值 （旧版，已弃用）
  *  	  Input:  *data: 指向数据包内容的指针; data_len: 数据包的长度
  *  	 Output:  返回计算出来的校验值
  * =====================================================================================
@@ -116,60 +116,65 @@ int send_login_auth()
 	pkt_data[data_index++] = 0xf4;	//len(244低位)
 	pkt_data[data_index++] = 0x00;	//len(244高位)
 	pkt_data[data_index++] = 0x03;	//step 第几步
-	pkt_data[data_index++] = strlen(user_id);	//uid len  用户ID长度
+	pkt_data[data_index++] = (strlen(user_id)&0xff);	//uid len  用户ID长度
 
-	// mac
+	// 0x0006 mac
 	memcpy(pkt_data + data_index, my_mac, 6);
 	data_index += 6;
 
-	// ip
+	// 0x000C ip
 	memcpy(pkt_data + data_index, &my_ip.sin_addr, 4);
 	data_index += 4;
 
-	// fix(4B)
+	// 0x0010 fix-options(4B)
 	pkt_data[data_index++] = 0x02;
 	pkt_data[data_index++] = 0x22;
 	pkt_data[data_index++] = 0x00;
-	pkt_data[data_index++] = 0x28;  //changed from 0x2a to 0x28,but I do not know why.
+	pkt_data[data_index++] = 0x31;
 
-	// challenge
+	// 0x0014 challenge
 	memcpy(pkt_data + data_index, drcom_challenge, 4);
 	data_index += 4;
 
-	// crc32(后面再填)
-	pkt_data[data_index++] = 0xc7;
-	pkt_data[data_index++] = 0x2f;
-	pkt_data[data_index++] = 0x31;
-	pkt_data[data_index++] = 0x01;
+	// 0x0018 checkSum
 
-	// 做完crc32后，在把第一个字节置位0
-	pkt_data[data_index++] = 0x7e;
-	pkt_data[data_index++] = 0x00;
-	pkt_data[data_index++] = 0x00;
-	pkt_data[data_index++] = 0x00;
+    GetU244CheckSum(drcom_challenge,sizeof (drcom_challenge),&pkt_data[data_index]);
+	data_index+=8;
 
 	// 0x0020  帐号 + 计算机名
 	int user_id_length = strlen(user_id);
 	memcpy(pkt_data + data_index, user_id, user_id_length);	
 	data_index += user_id_length;
-	char temp[100];
-	memset(temp, 0, 100);
-	strcpy(temp, "PC-");
-	strcat(temp, user_id);
-	memcpy(pkt_data + data_index, temp, 32 - user_id_length);
-	data_index += (32 - user_id_length);
+	char *UserNameBuffer[11];
+    memset(UserNameBuffer, 0, sizeof (UserNameBuffer));
 
-	//0x0040  dns 1 (114.114.114.114)
-	data_index += 12;
-	pkt_data[data_index++] = 0x72;
-	pkt_data[data_index++] = 0x72;
-	pkt_data[data_index++] = 0x72;
-	pkt_data[data_index++] = 0x72;
+    memcpy(UserNameBuffer,"LAPTOP-",strlen("LAPTOP-"));
+    memcpy(UserNameBuffer+strlen("LAPTOP-"),my_mac,sizeof (my_mac));
 
-	//0x0050
-	data_index += 16;
+    memcpy(pkt_data[data_index],UserNameBuffer, sizeof (UserNameBuffer));
 
-	//0x0060
+	data_index += (32 - user_id_length);//用户名+设备名段总长为32
+
+	//0x0040  dns 1 (202.96.128.166)
+	//data_index += 12;  我看是不需要加这个了
+	pkt_data[data_index++] = 0xca;
+    pkt_data[data_index++] = 0x60;
+	pkt_data[data_index++] = 0x80;
+	pkt_data[data_index++] = 0xa6;
+
+	//0x0050 dhcp server (全0）
+	data_index += 4;
+
+    //0x0054 dns 2 (114.114.114.114)
+    pkt_data[data_index++] = 0x72;
+    pkt_data[data_index++] = 0x72;
+    pkt_data[data_index++] = 0x72;
+    pkt_data[data_index++] = 0x72;
+
+    //0x0058 wins server 1/2 (totally useless)
+    data_index+=8;
+
+	//0x0060  系统版本   由于DrCom客户端使用GetVersion的姿势不对，从Win8.1后获取到的永远是6.2.9200
 	pkt_data[data_index++] = 0x94;
 	data_index += 3;
 	pkt_data[data_index++] = 0x06;
@@ -179,31 +184,22 @@ int send_login_auth()
 	pkt_data[data_index++] = 0xf0;
 	pkt_data[data_index++] = 0x23;
 	data_index += 2;
+    pkt_data[data_index++] = 0x02;
+    data_index += 3;
 
-	//0x0070
-	pkt_data[data_index++] = 0x02;
-	data_index += 2;
+	//0x0073 魔法值DrCOM
+    char drcom_ver[] =
+	    { 'D', 'r', 'C', 'O', 'M', 0x00, 0xb8, 0x01, 0x28, 0x00};
+    memcpy(pkt_data + data_index, drcom_ver, sizeof(drcom_ver));
 
-		char drcom_ver[12] =
-	    { 0x44, 0x72, 0x43, 0x4f, 0x4d, 0x00, 0xb8, 0x01, 0x28, 0x00,
-   0x00, 0x00 };
-	memcpy(pkt_data + data_index, drcom_ver, 12);
-	data_index += 12;
+    data_index += 54;
 
-	//0x0080
-	data_index += 16;
-
-	//0x0090
-	data_index += 32;
-
-	//0x00b0
-	data_index += 4;
-	char hashcode[] = "c0a5fb14fc037f53ce0cd21ef5f136b94e25d3d4";
+	//0x00b4
+	char hashcode[] = "c9145cb8eb2a837692ab3f303f1a08167f3ff64b";
 	memcpy(pkt_data + data_index, hashcode, 40);
-	data_index += 24;
 
-	memset(revData, 0, RECV_BUF_LEN);
 
+    /* //旧版U244校验码产生方式，已弃用
 	unsigned int crc = drcom_crc32(pkt_data, pkt_data_len);
 #if DRCOM_DEBUG_ON > 0
 	print_hex_drcom((char *) &crc, 4);
@@ -211,12 +207,16 @@ int send_login_auth()
 
 	memcpy(pkt_data + 24, (char *) &crc, 4);
 	memcpy(drcom_keepalive_info, (char *) &crc, 4);
+
 	// 完成crc32校验，置位0
 	pkt_data[28] = 0x00;
+    */
 
 #if DRCOM_DEBUG_ON > 0
 	print_hex_drcom(pkt_data,pkt_data_len);
 #endif
+
+    memset(revData, 0, RECV_BUF_LEN);
 
 	int revLen =
 	    udp_send_and_rev(pkt_data, pkt_data_len, revData);
@@ -236,7 +236,90 @@ int send_login_auth()
 
 	return 0;
 }
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name:  GetU244CheckSum
+ *  Description:  生成新版协议中U244的校验值
+ *  	  Input:  *ChallengeFromU8:指向U8发来的质询值;
+ *  	          Length:质询值的长度;
+ *  	          *CheckSum:计算完成的校验值，长8个字节
+ *  	 Output:  无
+ * =====================================================================================
+ */
+void GetU244CheckSum(uint8 *ChallengeFromU8,uint16 Length,uint8 *CheckSum){
 
+    uint8  Hash[16 + 4]={0};//16 for md4/5 and 20 for sha1
+    uint8  ChallengeFromU8Extended[32]={0};
+    uint8  type;
+
+
+    memcpy(ChallengeFromU8Extended, ChallengeFromU8, Length);
+    *(uint32*)&ChallengeFromU8Extended[Length]=20161130;//Extending Challenge Code
+    Length+=4;
+
+#if DRCOM_DEBUG_ON
+    printf("Challange from u8:\n");
+    for (int i = 0; i < 4; ++i) {
+        printf("0x%.2x  ",*((uint8*)ChallengeFromU8 + i));
+    }
+    printf("\n\n");
+#endif
+
+    type= ChallengeFromU8[0] & 0x03;//这其实是最后两位，但是因为大小端的问题，服务器发出来的时候就跑到最前面了
+    if (type==2) {
+
+        md4(ChallengeFromU8Extended, Length, Hash);
+
+        *((uint8 *)CheckSum + 0) = Hash[1];
+        *((uint8 *)CheckSum + 1) = Hash[2];
+        *((uint8 *)CheckSum + 2) = Hash[8];
+        *((uint8 *)CheckSum + 3) = Hash[9];
+        *((uint8 *)CheckSum + 4) = Hash[4];
+        *((uint8 *)CheckSum + 5) = Hash[5];
+        *((uint8 *)CheckSum + 6) = Hash[11];
+        *((uint8 *)CheckSum + 7) = Hash[12];
+
+    }else if (type==3){
+
+        sha1(ChallengeFromU8Extended, Length, Hash);
+
+        *((uint8 *)CheckSum + 0) = Hash[2];
+        *((uint8 *)CheckSum + 1) = Hash[3];
+        *((uint8 *)CheckSum + 2) = Hash[9];
+        *((uint8 *)CheckSum + 3) = Hash[10];
+        *((uint8 *)CheckSum + 4) = Hash[5];
+        *((uint8 *)CheckSum + 5) = Hash[6];
+        *((uint8 *)CheckSum + 6) = Hash[15];
+        *((uint8 *)CheckSum + 7) = Hash[16];
+
+    }else if (type==1){
+
+        md5(ChallengeFromU8Extended, Length, Hash);
+
+        *((uint8 *)CheckSum + 0) = Hash[2];
+        *((uint8 *)CheckSum + 1) = Hash[3];
+        *((uint8 *)CheckSum + 2) = Hash[8];
+        *((uint8 *)CheckSum + 3) = Hash[9];
+        *((uint8 *)CheckSum + 4) = Hash[5];
+        *((uint8 *)CheckSum + 5) = Hash[6];
+        *((uint8 *)CheckSum + 6) = Hash[13];
+        *((uint8 *)CheckSum + 7) = Hash[14];
+
+    }else if (type==0) {
+
+        printf("WARNING:收到旧版U8质询值！ \n");
+        //尽管这不应该发生，但此处为了保持一定的兼容性，仍然保留了这两句
+        //要注意的是，旧版的校验方式和整个U244的内容有关，详见drcom_crc32函数
+        *((uint32 *)CheckSum + 0) = checkCPULittleEndian()==0? big2little_32(20000711):20000711;
+        *((uint32 *)CheckSum + 1)= checkCPULittleEndian()==0? big2little_32(126):126;
+        //本想绕开大小端的，但那样会打断常量
+
+    }else{
+
+        printf("ERROR:收到不支持的U8质询值！\n");
+
+    }
+}
 /*
  * ===  FUNCTION  ======================================================================
  *         Name:  send_alive_pkt1

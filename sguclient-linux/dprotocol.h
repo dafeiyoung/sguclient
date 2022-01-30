@@ -35,6 +35,10 @@
 #include <sys/types.h>
 #include <fcntl.h>
 
+#include "md4.h"
+#include "md5.h"
+#include "sha1.h"
+
 #define DR_SERVER_IP "192.168.127.129"
 #define DR_PORT 61440
 #define RECV_BUF_LEN 1500
@@ -49,6 +53,7 @@ char dstatusMsg[256];
 void init_dial_env(void);
 void init_env_d();
 int udp_send_and_rev(char* send_buf, int send_len, char* recv_buf);
+void GetU244CheckSum(uint8 *ChallengeFromU8,uint16 Length,uint8 *CheckSum);
 void* serve_forever_d(void *args);
 
 #endif

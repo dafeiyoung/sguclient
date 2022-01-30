@@ -37,6 +37,10 @@
 #define XOFFLINE         0
 #define XONLINE          1
 
+typedef unsigned char   uint8;
+typedef unsigned short  uint16;
+typedef unsigned int    uint32;
+
 #define DRCOM_DEBUG_ON 0    //Drcom认证部分的调试开关，置1时输出有关调试信息
 
 int xstatus;  //802.1x状态
