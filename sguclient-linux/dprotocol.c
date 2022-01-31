@@ -151,7 +151,7 @@ int send_login_auth()
     memcpy(UserNameBuffer,"LAPTOP-",strlen("LAPTOP-"));
     memcpy(UserNameBuffer+strlen("LAPTOP-"),my_mac,sizeof (my_mac));
 
-    memcpy(pkt_data[data_index],UserNameBuffer, sizeof (UserNameBuffer));
+    memcpy(pkt_data +data_index ,UserNameBuffer, sizeof (UserNameBuffer));
 
 	data_index += (32 - user_id_length);//用户名+设备名段总长为32
 

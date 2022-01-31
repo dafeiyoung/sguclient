@@ -19,3 +19,7 @@ add_executable(sguclient
         sguclient-linux/sha1.h
         sguclient-linux/md4.c
         sguclient-linux/md4.h)
+        
+        
+target_link_libraries(sguclient -lpcap)
+target_link_libraries(sguclient -lpthread) 
