@@ -138,7 +138,7 @@ int send_login_auth()
 
 	// 0x0018 checkSum
 
-    GetU244CheckSum(drcom_challenge,sizeof (drcom_challenge),&pkt_data[data_index]);
+    FillU244CheckSum(drcom_challenge, sizeof(drcom_challenge), &pkt_data[data_index]);
 	data_index+=8;
 
 	// 0x0020  帐号 + 计算机名
@@ -244,7 +244,7 @@ int send_login_auth()
  *  	 Output:  无
  * =====================================================================================
  */
-void GetU244CheckSum(uint8 *ChallengeFromU8,uint16 Length,uint8 *CheckSum){
+void FillU244CheckSum(uint8 *ChallengeFromU8, uint16 Length, uint8 *CheckSum){
 
     uint8  Hash[16 + 4]={0};//16 for md4/5 and 20 for sha1
     uint8  ChallengeFromU8Extended[32]={0};
