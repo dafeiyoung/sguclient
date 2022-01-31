@@ -52,7 +52,6 @@ char         *dev = NULL;               /* 连接的设备名 */
 char         *username = NULL;
 char         *password = NULL;
 char         *user_gateway = NULL;      /* 由用户设定的四个报文参数 */
-char         *user_dns = NULL;
 char         *user_ip = NULL;
 char         *user_mask = NULL;
 int           exit_flag = 0;
@@ -70,7 +69,6 @@ size_t         password_length;
 uint32_t       local_ip;			       /* 网卡IP，网络序，下同 */
 uint32_t       local_mask;			       /* subnet mask */
 uint32_t       local_gateway = -1;
-uint32_t       local_dns = -1;
 uint8_t        local_mac[ETHER_ADDR_LEN];  /* MAC地址 */
 
 
@@ -1000,13 +998,9 @@ void init_info()
     else
         local_gateway = 0;
 
-    if (user_dns)
-        local_dns = inet_addr (user_dns);
-    else
-        local_dns = 0;
 
-    if (local_ip == -1 || local_mask == -1 || local_gateway == -1 || local_dns == -1) {
-        fprintf (stderr,"ERROR: One of specified IP, MASK, Gateway and DNS address\n"
+    if (local_ip == -1 || local_mask == -1 || local_gateway == -1 ) {
+        fprintf (stderr,"ERROR: One of specified IP, MASK or Gateway \n"
                         "in the arguments format error.\n");
         exit(EXIT_FAILURE);
     }
@@ -1154,7 +1148,6 @@ void show_local_info ()
     printf("IP:         %s\n", inet_ntop(AF_INET, &local_ip, buf, 32));
     printf("MASK:       %s\n", inet_ntop(AF_INET, &local_mask, buf, 32));
     printf("Gateway:    %s\n", inet_ntop(AF_INET, &local_gateway, buf, 32));
-    printf("DNS:        %s\n", inet_ntop(AF_INET, &local_dns, buf, 32));
     printf("ISP Type:   %s\n", isp_type_buf);
     printf("Auto Reconnect: %s\n", is_auto_buf);
     if ( isp_type == 'D' )
@@ -1190,7 +1183,6 @@ void init_arguments(int *argc, char ***argv)
         {"mask",        required_argument,  0,                       5},
         {"gateway",     required_argument,  0,                     'g'},
         {"showinfo",    no_argument,        0,                     's'},
-        {"dns",         required_argument,  0,                     'd'},
         {0, 0, 0, 0}
         };
     clientPort = 61440;  //初始化时，客户端默认使用61440端口，若启用random则再产生随机端口来替换
@@ -1227,9 +1219,6 @@ void init_arguments(int *argc, char ***argv)
                 break;
             case 'g':
                 user_gateway = optarg;
-                break;
-            case 'd':
-                user_dns = optarg;
                 break;
             case 's':
                 show_usage();
