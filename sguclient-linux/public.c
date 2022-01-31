@@ -60,7 +60,7 @@ void print_hex_drcom(char *hex, int len)
     printf("print_hex_drcom\n");
     for (int i = 0; i < len; ++i) {
         if (i&&i%16==0){ printf("\n");}
-        printf("0x%.2x  ",*((uint8*)hex + i));
+        printf("%.2x ",*((uint8*)hex + i));
     }
     printf("\n\n");
 
