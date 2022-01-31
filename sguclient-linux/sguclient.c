@@ -1175,6 +1175,7 @@ void init_arguments(int *argc, char ***argv)
         {"auto",        no_argument,        &auto_rec,               1},
         {"noheartbeat", no_argument,        &timeout_alarm_1x,       0},
         {"device",      required_argument,  0,                       2},
+        {"leave",       no_argument,        0,                     'l'},
         {"random",      no_argument,        0,                     'r'},
         {"username",    required_argument,  0,                     'u'},
         {"password",    required_argument,  0,                     'p'},
@@ -1190,7 +1191,7 @@ void init_arguments(int *argc, char ***argv)
     while (1) {
         /* getopt_long stores the option index here. */
         int option_index = 0;
-        c = getopt_long ((*argc), (*argv), "hru:p:i:g:s",
+        c = getopt_long ((*argc), (*argv), "hru:lp:i:g:s",
                         long_options, &option_index);
         if (c == -1)
             break;
