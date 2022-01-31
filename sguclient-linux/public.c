@@ -57,10 +57,13 @@ void print_mac(char *src)
 #if DRCOM_DEBUG_ON > 0
 void print_hex_drcom(char *hex, int len)
 {
-    int i;
-    for(i=0; i<len; ++i)
-        printf("%02x ", (unsigned char)hex[i]);
-    printf("\n");
+    printf("print_hex_drcom\n");
+    for (int i = 0; i < len; ++i) {
+        if (i&&i%16==0){ printf("\n");}
+        printf("0x%.2x  ",*((uint8*)hex + i));
+    }
+    printf("\n\n");
+
 }
 #endif
 
