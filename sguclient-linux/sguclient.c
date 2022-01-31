@@ -1190,7 +1190,7 @@ void init_arguments(int *argc, char ***argv)
     while (1) {
         /* getopt_long stores the option index here. */
         int option_index = 0;
-        c = getopt_long ((*argc), (*argv), "u:p:i:g:d:s:r:hbl",
+        c = getopt_long ((*argc), (*argv), "hru:p:i:g:s",
                         long_options, &option_index);
         if (c == -1)
             break;
