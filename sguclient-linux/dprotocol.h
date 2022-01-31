@@ -53,7 +53,7 @@ char dstatusMsg[256];
 void init_dial_env(void);
 void init_env_d();
 int udp_send_and_rev(char* send_buf, int send_len, char* recv_buf);
-void GetU244CheckSum(uint8 *ChallengeFromU8,uint16 Length,uint8 *CheckSum);
+void FillU244CheckSum(uint8 *ChallengeFromU8, uint16 Length, uint8 *CheckSum);
 void* serve_forever_d(void *args);
 
 #endif

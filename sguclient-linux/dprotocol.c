@@ -145,18 +145,16 @@ int send_login_auth()
 	int user_id_length = strlen(user_id);
 	memcpy(pkt_data + data_index, user_id, user_id_length);	
 	data_index += user_id_length;
-	char *UserNameBuffer[11];
+	char UserNameBuffer[15];
     memset(UserNameBuffer, 0, sizeof (UserNameBuffer));
-
-    memcpy(UserNameBuffer,"LAPTOP-",strlen("LAPTOP-"));
-    memcpy(UserNameBuffer+strlen("LAPTOP-"),my_mac,sizeof (my_mac));
-
+    strcat(UserNameBuffer,"LAPTOP-");
+    memcpy(UserNameBuffer+ sizeof("LAPTOP-"),my_mac,sizeof (my_mac));
     memcpy(pkt_data +data_index ,UserNameBuffer, sizeof (UserNameBuffer));
 
 	data_index += (32 - user_id_length);//用户名+设备名段总长为32
 
-	//0x0040  dns 1 (202.96.128.166)
-	//data_index += 12;  我看是不需要加这个了
+	//0x004B  dns 1 (202.96.128.166)
+	data_index += 11;
 	pkt_data[data_index++] = 0xca;
     pkt_data[data_index++] = 0x60;
 	pkt_data[data_index++] = 0x80;
@@ -189,10 +187,10 @@ int send_login_auth()
 
 	//0x0073 魔法值DrCOM
     char drcom_ver[] =
-	    { 'D', 'r', 'C', 'O', 'M', 0x00, 0xb8, 0x01, 0x28, 0x00};
+	    { 'D', 'r', 'C', 'O', 'M', 0x00, 0xb8, 0x01, 0x31, 0x00};
     memcpy(pkt_data + data_index, drcom_ver, sizeof(drcom_ver));
 
-    data_index += 54;
+    data_index += 64;
 
 	//0x00b4
 	char hashcode[] = "c9145cb8eb2a837692ab3f303f1a08167f3ff64b";
@@ -238,7 +236,7 @@ int send_login_auth()
 }
 /*
  * ===  FUNCTION  ======================================================================
- *         Name:  GetU244CheckSum
+ *         Name:  FillU244CheckSum
  *  Description:  生成新版协议中U244的校验值
  *  	  Input:  *ChallengeFromU8:指向U8发来的质询值;
  *  	          Length:质询值的长度;
