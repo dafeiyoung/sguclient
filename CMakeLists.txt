@@ -14,4 +14,8 @@ add_executable(sguclient
         sguclient-linux/public.c
         sguclient-linux/public.h
         sguclient-linux/sguclient.c
-        sguclient-linux/sguclient.h)
+        sguclient-linux/sguclient.h
+        sguclient-linux/sha1.c
+        sguclient-linux/sha1.h
+        sguclient-linux/md4.c
+        sguclient-linux/md4.h)

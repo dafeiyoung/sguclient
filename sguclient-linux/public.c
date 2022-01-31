@@ -6,7 +6,7 @@
  *    Description:  定义一些公有的变量和函数，主要供drcom认证使用（修改拷贝自fsn_server）
  *
  *        Version:  0.18
- *        Created:  
+ *        Created:
  *       Revision:  none
  *       Compiler:  g++
  *
@@ -34,7 +34,7 @@ char EAP_TYPE_MD5_SALT[9] = {0x00, 0x44, 0x61, 0x2a, 0x00, 0xff, 0xff, 0xff, 0xf
  */
 void print_mac(char *src)
 {
-    char mac[32] = ""; 
+    char mac[32] = "";
     sprintf(mac, "%02x%02x%02x%02x%02x%02x",
                         (unsigned char)src[0],
                         (unsigned char)src[1],
@@ -93,9 +93,9 @@ inline int checkCPULittleEndian()
  */
 inline uint32_t big2little_32(uint32_t A)
 {
-    return ((((uint32_t)(A) & 0xff000000) >>24) | 
-        (((uint32_t)(A) & 0x00ff0000) >> 8) | 
-        (((uint32_t)(A) & 0x0000ff00) << 8) | 
+    return ((((uint32_t)(A) & 0xff000000) >>24) |
+        (((uint32_t)(A) & 0x00ff0000) >> 8) |
+        (((uint32_t)(A) & 0x0000ff00) << 8) |
         (((uint32_t)(A) & 0x000000ff) << 24));
 }
 
@@ -104,15 +104,15 @@ int crt_sock(struct ifreq * ifr)
 {
     int s;
     int err;
-    s = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_PAE)); 
-    
-    /* 
+    s = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_PAE));
+
+    /*
         assert the ifr->ifr_ifrn.ifrn_name was known before
         interface_name was set in get_from_file(), and saved in /etc/8021.config file
     */
     memset(ifr, 0, sizeof(struct ifreq));
     strncpy(ifr->ifr_ifrn.ifrn_name, interface_name, sizeof(ifr->ifr_ifrn.ifrn_name)); // interface_name: global value, in public.h
-    
+
     /* get ip address */
     err = ioctl(s, SIOCGIFADDR, ifr);
     if( err < 0)
@@ -142,7 +142,7 @@ int crt_sock(struct ifreq * ifr)
     }
 
 
-    // check the if's xstatus 
+    // check the if's xstatus
     if(ifr->ifr_ifru.ifru_flags & IFF_RUNNING )
     {
         printf("eth link up\n");
@@ -161,7 +161,7 @@ int crt_sock(struct ifreq * ifr)
         close(s);
         return -1;
     }
-    
+
     return s;
 }
 
@@ -189,18 +189,18 @@ int create_ethhdr_sock(struct ethhdr * eth_header)
         exit(-1);
     }
 
-    /* create  eth header 
+    /* create  eth header
      #define ETH_HLEN 14 */
     memcpy(eth_header->h_dest, dev_dest, ETH_ALEN);
     memcpy(eth_header->h_source, myifr->ifr_ifru.ifru_hwaddr.sa_data, ETH_ALEN);
     memcpy(my_mac, myifr->ifr_ifru.ifru_hwaddr.sa_data, ETH_ALEN);
     eth_header->h_proto = htons(ETH_P_PAE); // ETH_P_PAE = 0x888e
-    
+
     // init response salts
     //printf("Drcom host ip: %s\n", inet_ntoa(my_ip.sin_addr));
     memcpy(EAP_TYPE_ID_SALT + sizeof(EAP_TYPE_ID_SALT) - 4, &(my_ip.sin_addr), 4);
     memcpy(EAP_TYPE_MD5_SALT + sizeof(EAP_TYPE_ID_SALT) - 4, &(my_ip.sin_addr), 4);
 
-    free(myifr); 
+    free(myifr);
     return mysock;
 }
