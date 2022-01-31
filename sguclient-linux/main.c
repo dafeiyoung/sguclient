@@ -27,7 +27,6 @@
 #include "dprotocol.h"
 
 #define LOCKFILE "/var/run/sguclient.pid"        /* 锁文件 */
-
 #define LOCKMODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 
 static void signal_interrupted (int signo);
@@ -181,7 +180,7 @@ int main(int argc, char **argv)
     if ( (ins_pid = program_running_check ()) ) {
         fprintf(stderr,"@@ERROR: SGUClient Already "
                             "Running with PID %d\n", ins_pid);
-        fprintf(stdout, "&&Info: run 'sudo kill %d' before re-running SGUClient'\n\n", ins_pid);
+        fprintf(stdout, "&&Info: run 'sudo kill %d' or %s -k before re-running SGUClient'\n\n", ins_pid,argv[0]);
         exit(EXIT_FAILURE);
     }
 
