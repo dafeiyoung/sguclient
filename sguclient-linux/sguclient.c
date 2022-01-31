@@ -280,7 +280,7 @@ void show_usage()
             "\t-i, --isp_type        Specify your ISP type.\n"
             "\t                      'D' for China Telecom(CTCC), 'Y' for China Mobile(CMCC).\n"
             "\t                      Default is D (China Telecom).\n\n"
-            "\t-l                    Tell the process to Logoff.\n\n"
+            "\t-k                    Kill other running SGUClient instance.\n\n"
 
             "\t-h, --help            Show this help.\n\n"
             "\n"
@@ -1175,6 +1175,7 @@ void init_arguments(int *argc, char ***argv)
         {"auto",        no_argument,        &auto_rec,               1},
         {"noheartbeat", no_argument,        &timeout_alarm_1x,       0},
         {"device",      required_argument,  0,                       2},
+        {"kill",        no_argument,        0,                     'k'},
         {"random",      no_argument,        0,                     'r'},
         {"username",    required_argument,  0,                     'u'},
         {"password",    required_argument,  0,                     'p'},
@@ -1190,7 +1191,7 @@ void init_arguments(int *argc, char ***argv)
     while (1) {
         /* getopt_long stores the option index here. */
         int option_index = 0;
-        c = getopt_long ((*argc), (*argv), "hru:p:i:g:s",
+        c = getopt_long ((*argc), (*argv), "hru:kp:i:g:s",
                         long_options, &option_index);
         if (c == -1)
             break;
@@ -1224,7 +1225,7 @@ void init_arguments(int *argc, char ***argv)
                 show_usage();
                 exit(EXIT_SUCCESS);
                 break;
-            case 'l':
+            case 'k':
                 exit_flag = 1;
                 break;
             case 'h':
