@@ -423,7 +423,7 @@ void FillU244CheckSum(uint8 *ChallengeFromU8, uint16 Length, uint8 *CheckSum){
 /*
  * ===  FUNCTION  ======================================================================
  *         Name:  send_alive_pkt1
- *  Description:  发起drcom协议的1类型杂项包（发送长度为40的数据包）
+ *  Description:  发起DrCom协议的1类型杂项包（U40-1）
  *  	  Input:  无
  *  	 Output:  成功返回0
  * =====================================================================================
@@ -436,16 +436,16 @@ int send_alive_pkt1()
 	memset(pkt_data, 0, pkt_data_len);
 	int data_index = 0;
 	pkt_data[data_index++] = 0x07;	// Code
-	pkt_data[data_index++] = drcom_pkt_id; //id
+	pkt_data[data_index++] = drcom_pkt_counter; //计数器
 	pkt_data[data_index++] = 0x28;	//len(40低位)
 	pkt_data[data_index++] = 0x00;  //len(40高位)
 	pkt_data[data_index++] = 0x0B;	// Step
 	pkt_data[data_index++] = 0x01;
 
-	pkt_data[data_index++] = 0xdc;	// Fixed Unknown
+	pkt_data[data_index++] = 0xdc;	//todo: 来自U8回包的ver
 	pkt_data[data_index++] = 0x02;
 
-	pkt_data[data_index++] = 0x00;	//每次加一个数
+	pkt_data[data_index++] = 0x00;	//todo:"两位随机生成值，用于分辨同一组包"
 	pkt_data[data_index++] = 0x00;
 
 	memcpy(pkt_data + 16, drcom_misc1_flux, 4);
@@ -467,7 +467,7 @@ int send_alive_pkt1()
 	} 
 	else 
 	{
-		drcom_pkt_id++;
+		drcom_pkt_counter++;
 
 		memcpy(&drcom_misc3_flux, revData + 16, 4);
 		return 0;
@@ -491,17 +491,17 @@ int send_alive_pkt2()
 	memset(pkt_data, 0, pkt_data_len);
 	int data_index = 0;
 	pkt_data[data_index++] = 0x07;	// Code
-	pkt_data[data_index++] = drcom_pkt_id;
+	pkt_data[data_index++] = drcom_pkt_counter;
 	pkt_data[data_index++] = 0x28;	//len(40低位)
 	pkt_data[data_index++] = 0x00;  //len(40高位)
 
 	pkt_data[data_index++] = 0x0B;	// Step
-	pkt_data[data_index++] = 0x03;
+	pkt_data[data_index++] = 0x03;  // Type
 
-	pkt_data[data_index++] = 0xdc;	// Fixed Unknown
+	pkt_data[data_index++] = 0xdc;	//todo: 来自U8回包的ver
 	pkt_data[data_index++] = 0x02;
 
-	pkt_data[data_index++] = 0x00;	//每次加一个数
+	pkt_data[data_index++] = 0x00;	//todo:"两位随机生成值，用于分辨同一组包"
 	pkt_data[data_index++] = 0x00;
 
 
@@ -515,7 +515,7 @@ int send_alive_pkt2()
 	print_hex_drcom(revData, revLen);
 #endif
 
-	drcom_pkt_id++;
+	drcom_pkt_counter++;
 
 	memcpy(drcom_misc1_flux, revData + 16, 4);
 	return 0;
@@ -686,7 +686,7 @@ void* serve_forever_d(void *args)
 {
 	int ret;
 
-	drcom_pkt_id = 0;
+    drcom_pkt_counter = 0;
 	dstatus = DOFFLINE;
 	strcpy(dstatusMsg, "please log on first");
 
