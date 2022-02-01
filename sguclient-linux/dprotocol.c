@@ -68,6 +68,13 @@ uint32_t drcom_crc32(char *data, int data_len)
  */
 int start_request()
 {
+    /*数据包U8，长度固定为8字节，必须在EAP结束后尽快发出
+    * +------+----------+----------+-----------------+
+    * | 标头  |   长度   |   类型    |   零填充         |
+    * +------+----------+----------+-----------------+
+    * |  07  |  00  08  |  00  01  |   00   00   00  |
+    * +------+----------+----------+-----------------+
+    */
 	const int pkt_data_len = 8;
 	char pkt_data[8] =
 	    { 0x07, 0x00, 0x08, 0x00, 0x01, 0x00, 0x00, 0x00 };
@@ -79,7 +86,25 @@ int start_request()
 #if DRCOM_DEBUG_ON > 0
 	print_hex_drcom(revData, revLen);
 #endif
-
+    /*数据包U8的响应，长度固定为32字节
+    * +------+-----------+---------+-------+------------+-----------+
+    * | 标头  | 错误的长度 |   类型   |算法选择|      零     |    时间码  |
+    * +------+----------+---------+------+-+------------+-----------+
+    * |  07  |  00  10  | 00  02 |   8X  |  00 00 00   |XX XX XX XX |
+    * +------+-------+--+--------+----+--+-------------+------------+
+    * |    客户端IP   |      某种长度   |       零        |    某种版本 |
+    * +--------------+----------------+--------------+-+------------+
+    * | c0 a8 XX XX  | a8  ac  00  00 |  00 00 00 00 | dc 02 00 00  |
+    * +--------------+----------------+--------------+--------------+
+    *  时间码：
+    *    小端序，且最靠近包头的一字节的最后两bit会用来决定U244校验值的产生算法（一共有3种
+    *    在新版加密中不接受最后两bit均为0的情况），且整个时间码会被用来当质询值
+    *  算法选择：
+    *    转换成二进制后，高八位固定为 1000。低八位的最后两位据观察总与上面用来决定U244校验算法的选择位一致
+    *  错误的长度：
+    *    从其他数据包来看，这里应该是保存包长度用的，但U8的响应包这里却是错的 (0x10=0d16!=0d32)
+    *  如果没有特别注明，则所有数据段均为网络端序（也就是大端序）
+    */
 	if (revData[0] != 0x07)	// Start Response
 		return -1;
 
@@ -102,66 +127,124 @@ int start_request()
  */
 int send_login_auth()
 {
-	const int pkt_data_len = 244;
-	char pkt_data[pkt_data_len];
+    /*U244，长度固定为32字节，
+    * +-----+-----+-----+-------+-------+-------------------+
+    * |标头 |计数器| 长度 |  类型  |用户名长|     客户端MAC      |
+    * +-----+-----+-----+-------+-------+-------------------+
+    * |  07 | 01  | f4  | 00 03 |  0b   | XX XX XX XX XX XX |
+    * +-----+-----+--+--+-------+-------+-------------------+
+    * |    客户端IP   |  定值1,与版本有关  |  U8[8:11] 质询值   |
+    * +--------------+------------------+-------------------+
+    * | c0 a8 XX XX  |  02  22  00  31  |   XX  XX  XX  XX  |
+    * +--------------+----------+-------+-------------------+
+    * |        U244校验值        |          用户名            |
+    * +-------------------------+---------------------------+
+    * | XX XX XX XX XX XX XX XX |  XX XX XX  ...  XX XX XX  |
+    * +-------------------------+-------------+-------------+
+    * |        计算机名          |  客户端DNS1  | 客户端DHCP   |
+    * +-------------------------+-------------+-------------+
+    * | XX XX XX  ...  XX XX XX | ca 60 80 a6 | 00 00 00 00 |
+    * +-------------+-----------+-------------+-+-----------+--+
+    * |  客户端DNS2  | 客户端WINS1  | 客户端WINS2   | 系统版本段长度|
+    * +-------------+-------------+-------------+--------------+
+    * | 72 72 72 72 | 00 00 00 00 | 00 00 00 00 | 94 00 00 00  |
+    * +-------------+-------------+-------------+--------------+
+    * | MajorVersion| MinorVersion| BuildNumber |  PlatformId  |
+    * +-------------+-------------+-------------+--------------+
+    * | 06 00 00 00 | 02 00 00 00 | f0 23 00 00 | 02 00 00 00  |
+    * +-------------+--+-------+--+---------+---+--------+-----+
+    * |    "DrCOM"     | DrVer | DrCustomId | DrNewVerId |
+    * +----------------+-------+------------+------------+
+    * | 44 72 43 4f 4d |  00   |    b8 01   |   31 00    |
+    * +-------------+--+-------+------+-----+-----+------+
+    * |  五十四字节零 |客户端验证模块校验码|   零填充   |
+    * +-------------+-----------------+-----------+
+    * |  00 ... 00  | c9 14 ... f6 4b | 00 ... 00 |
+    * +-------------+------------- ---+-----------+
+     * U244需要在U8反回后十分钟内发出,否则会掉线。但测试发现，时间码的有效期只有一分钟
+     * 计数器：
+     *   固定为1，这里延续了laijingwu学长在文章[laijingwu.com/222.html]中对其的标记
+     * 长度：
+     *   小端序 0x00f4 = 0d244
+     * 用户名长度：
+     *   0x0b = 0d11
+     * 定值1：
+     *   小端序，最高字从26变成了31。其他位功能未知
+     * U244校验值：
+     *   新版从32位变成了64位，具体算法见FillU244CheckSum
+     * 计算机名：
+     *   也就是主机名，最长32字节
+     * 客户端DNS,DHCP,WINS:
+     *   统统可以置空
+     * 系统版本段：
+     *   结构与WIN-API中OSVERSIONINFO结构体完全一致
+     *   除了其中的szCSDVersion成员被换成了DrCom自定义的内容
+     *   由于DrCom客户端使用GetVersion的姿势不对，从Win8.1后获取到的永远是6.2.9200,所以本段可视为定值
+     * "DrCOM"：
+     *    是字符串"DrCOM"的ASCII。
+     * 客户端验证模块校验码:
+     *    来自Log文件中的AuthModuleFileHash段
+    */
+    const int pkt_data_len = 244;
+    char pkt_data[pkt_data_len];
 
-	memset(pkt_data, 0, pkt_data_len);
-	int data_index = 0;
+    memset(pkt_data, 0, pkt_data_len);
+    int data_index = 0;
 
-	int i = 0;
+    int i = 0;
 
-	// header
-	pkt_data[data_index++] = 0x07;	// Code
-	pkt_data[data_index++] = 0x01;	//id
-	pkt_data[data_index++] = 0xf4;	//len(244低位)
-	pkt_data[data_index++] = 0x00;	//len(244高位)
-	pkt_data[data_index++] = 0x03;	//step 第几步
-	pkt_data[data_index++] = (strlen(user_id)&0xff);	//uid len  用户ID长度
+    // header
+    pkt_data[data_index++] = 0x07;	// Code
+    pkt_data[data_index++] = 0x01;	//id
+    pkt_data[data_index++] = 0xf4;	//len(244低位)
+    pkt_data[data_index++] = 0x00;	//len(244高位)
+    pkt_data[data_index++] = 0x03;	//step 第几步
+    pkt_data[data_index++] = (strlen(user_id)&0xff);	//uid len  用户ID长度
 
-	// 0x0006 mac
-	memcpy(pkt_data + data_index, my_mac, 6);
-	data_index += 6;
+    // 0x0006 mac
+    memcpy(pkt_data + data_index, my_mac, 6);
+    data_index += 6;
 
-	// 0x000C ip
-	memcpy(pkt_data + data_index, &my_ip.sin_addr, 4);
-	data_index += 4;
+    // 0x000C ip
+    memcpy(pkt_data + data_index, &my_ip.sin_addr, 4);
+    data_index += 4;
 
-	// 0x0010 fix-options(4B)
-	pkt_data[data_index++] = 0x02;
-	pkt_data[data_index++] = 0x22;
-	pkt_data[data_index++] = 0x00;
-	pkt_data[data_index++] = 0x31;
+    // 0x0010 fix-options(4B)
+    pkt_data[data_index++] = 0x02;
+    pkt_data[data_index++] = 0x22;
+    pkt_data[data_index++] = 0x00;
+    pkt_data[data_index++] = 0x31;
 
-	// 0x0014 challenge
-	memcpy(pkt_data + data_index, drcom_challenge, 4);
-	data_index += 4;
+    // 0x0014 challenge
+    memcpy(pkt_data + data_index, drcom_challenge, 4);
+    data_index += 4;
 
-	// 0x0018 checkSum
+    // 0x0018 checkSum
 
     FillU244CheckSum(drcom_challenge, sizeof(drcom_challenge), &pkt_data[data_index]);
-	data_index+=8;
+    data_index+=8;
 
-	// 0x0020  帐号 + 计算机名
-	int user_id_length = strlen(user_id);
-	memcpy(pkt_data + data_index, user_id, user_id_length);	
-	data_index += user_id_length;
-	char UserNameBuffer[15];
+    // 0x0020  帐号 + 计算机名
+    int user_id_length = strlen(user_id);
+    memcpy(pkt_data + data_index, user_id, user_id_length);
+    data_index += user_id_length;
+    char UserNameBuffer[15];
     memset(UserNameBuffer, 0, sizeof (UserNameBuffer));
     strcat(UserNameBuffer,"LAPTOP-");
     memcpy(UserNameBuffer+ sizeof("LAPTOP-"),my_mac,sizeof (my_mac));
     memcpy(pkt_data +data_index ,UserNameBuffer, sizeof (UserNameBuffer));
 
-	data_index += (32 - user_id_length);//用户名+设备名段总长为32
+    data_index += (32 - user_id_length);//用户名+设备名段总长为32
 
-	//0x004B  dns 1 (202.96.128.166)
-	data_index += 11;
-	pkt_data[data_index++] = 0xca;
+    //0x004B  dns 1 (202.96.128.166)
+    data_index += 11;
+    pkt_data[data_index++] = 0xca;
     pkt_data[data_index++] = 0x60;
-	pkt_data[data_index++] = 0x80;
-	pkt_data[data_index++] = 0xa6;
+    pkt_data[data_index++] = 0x80;
+    pkt_data[data_index++] = 0xa6;
 
-	//0x0050 dhcp server (全0）
-	data_index += 4;
+    //0x0050 dhcp server (全0）
+    data_index += 4;
 
     //0x0054 dns 2 (114.114.114.114)
     pkt_data[data_index++] = 0x72;
@@ -172,67 +255,86 @@ int send_login_auth()
     //0x0058 wins server 1/2 (totally useless)
     data_index+=8;
 
-	//0x0060  系统版本   由于DrCom客户端使用GetVersion的姿势不对，从Win8.1后获取到的永远是6.2.9200
-	pkt_data[data_index++] = 0x94;
-	data_index += 3;
-	pkt_data[data_index++] = 0x06;
-	data_index += 3;
-	pkt_data[data_index++] = 0x02;
-	data_index += 3;
-	pkt_data[data_index++] = 0xf0;
-	pkt_data[data_index++] = 0x23;
-	data_index += 2;
+    //0x0060  系统版本
+    //pkt_data[data_index++] = 0x94;
+    data_index += 3;
+    pkt_data[data_index++] = 0x06;
+    data_index += 3;
+    pkt_data[data_index++] = 0x02;
+    data_index += 3;
+    pkt_data[data_index++] = 0xf0;
+    pkt_data[data_index++] = 0x23;
+    data_index += 2;
     pkt_data[data_index++] = 0x02;
     data_index += 3;
 
-	//0x0073 魔法值DrCOM
+    //0x0073 魔法值DrCOM
     char drcom_ver[] =
-	    { 'D', 'r', 'C', 'O', 'M', 0x00, 0xb8, 0x01, 0x31, 0x00};
+        { 'D', 'r', 'C', 'O', 'M', 0x00, 0xb8, 0x01, 0x31, 0x00};
     memcpy(pkt_data + data_index, drcom_ver, sizeof(drcom_ver));
 
     data_index += 64;
 
-	//0x00b4
-	char hashcode[] = "c9145cb8eb2a837692ab3f303f1a08167f3ff64b";
-	memcpy(pkt_data + data_index, hashcode, 40);
+    //0x00b4
+    char hashcode[] = "c9145cb8eb2a837692ab3f303f1a08167f3ff64b";
+    memcpy(pkt_data + data_index, hashcode, 40);
 
 
     /* //旧版U244校验码产生方式，已弃用
-	unsigned int crc = drcom_crc32(pkt_data, pkt_data_len);
-#if DRCOM_DEBUG_ON > 0
-	print_hex_drcom((char *) &crc, 4);
-#endif
+    unsigned int crc = drcom_crc32(pkt_data, pkt_data_len);
+    #if DRCOM_DEBUG_ON > 0
+    print_hex_drcom((char *) &crc, 4);
+    #endif
 
-	memcpy(pkt_data + 24, (char *) &crc, 4);
-	memcpy(drcom_keepalive_info, (char *) &crc, 4);
+    memcpy(pkt_data + 24, (char *) &crc, 4);
+    memcpy(drcom_keepalive_info, (char *) &crc, 4);
 
-	// 完成crc32校验，置位0
-	pkt_data[28] = 0x00;
+    // 完成crc32校验，置位0
+    pkt_data[28] = 0x00;
     */
 
-#if DRCOM_DEBUG_ON > 0
-	print_hex_drcom(pkt_data,pkt_data_len);
-#endif
+    #if DRCOM_DEBUG_ON > 0
+    	print_hex_drcom(pkt_data,pkt_data_len);
+    #endif
 
-    memset(revData, 0, RECV_BUF_LEN);
+        memset(revData, 0, RECV_BUF_LEN);
 
-	int revLen =
-	    udp_send_and_rev(pkt_data, pkt_data_len, revData);
-#if DRCOM_DEBUG_ON > 0
-	print_hex_drcom(revData, revLen);
-#endif
+    	int revLen =
+    	    udp_send_and_rev(pkt_data, pkt_data_len, revData);
+    #if DRCOM_DEBUG_ON > 0
+    	print_hex_drcom(revData, revLen);
+    #endif
+    /*数据包U244的响应
+    * +------+-------+----+--------+------+----------+
+    * | 标头  | 计数器 |长度|  类型  |用户名长| 加密内容长 |
+    * +------+-------+----+-------+-------+----------+
+    * |  07  |  01   | 30 | 00 04 |   0b  |    20    |
+    * +------+-------+------------+-------+----------+
+    * |    校验值1    |     未知    |      加密载荷     |
+    * +--------------+------------+------------------+
+    * | XX XX XX XX  | 01 00 00 00| XX XX ... XX XX  |
+    * +--------------+------------+------------------+
+    *  校验值1：
+    *    U244校验值靠近包头的四字节，先转换为小端序，然后循环右移两次，再转为大端序。
+    *    可以猜测服务端的做法是直接赋值到一个uint32里，移完了再赋值回去，没考虑大小端的事情，于是就会出现这种奇观
+    *  加密载荷：
+    *    这部分收到后的处理和其他部分明显不一样，推测是加密了的，解密算法见 DecodeU244Response函数
+    *    解密后的数据只能识别到服务端IP与客户端IP，其他位功能未知
+    *
+    *  要注意这里会连回两个包，紧接着这个的就是服务端的公告了
+    */
+    	unsigned char *keepalive_info = revData + 16;
+    	for (i = 0; i < 16; i++)
+    	{
+    		drcom_keepalive_info2[i] = (unsigned char) ((keepalive_info[i] << (i & 0x07)) + (keepalive_info[i] >> (8 - (i & 0x07))));
+    	}
 
-	unsigned char *keepalive_info = revData + 16;
-	for (i = 0; i < 16; i++) 
-	{
-		drcom_keepalive_info2[i] = (unsigned char) ((keepalive_info[i] << (i & 0x07)) + (keepalive_info[i] >> (8 - (i & 0x07))));
-	}
+    #if DRCOM_DEBUG_ON > 0
+        DecodeU244Response(revData);
+    	print_hex_drcom(drcom_keepalive_info2, 16);
+    #endif
 
-#if DRCOM_DEBUG_ON > 0
-	print_hex_drcom(drcom_keepalive_info2, 16);
-#endif
-
-	return 0;
+    return 0;
 }
 /*
  * ===  FUNCTION  ======================================================================
@@ -312,7 +414,7 @@ void FillU244CheckSum(uint8 *ChallengeFromU8, uint16 Length, uint8 *CheckSum){
         *((uint32 *)CheckSum + 1)= checkCPULittleEndian()==0? big2little_32(126):126;
         //本想绕开大小端的，但那样会打断常量
 
-    }else{
+    }else{//这段是不是可以删掉
 
         printf("ERROR:收到不支持的U8质询值！\n");
 
@@ -673,4 +775,23 @@ void* serve_forever_d(void *args)
 
 	close(sock);
 	return NULL;
+}
+void DecodeU244Response(uint8* buf) {
+
+    uint8 *pBuf = &buf[buf[2] - buf[6]];
+    uint16 shift;
+    uint8 len = buf[6];
+    uint8 tempLeft, tempRight;
+
+    for (int i = 0; i < len; ++i) {
+        shift = i & 0x7;
+        tempLeft = pBuf[i] << shift;
+        tempRight = pBuf[i] >> (8 - shift);
+        pBuf[i] = tempRight + tempLeft;
+    }
+    for (int i = 0; i < len; ++i) {
+        if (i && i % 7 == 0)printf("\n");
+        printf("0x%.2x  ", pBuf[i]);
+
+    }
 }
