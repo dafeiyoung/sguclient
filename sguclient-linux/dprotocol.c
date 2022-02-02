@@ -24,8 +24,7 @@ char drcom_mydllver[2];
 char drcom_keepalive_info[4];
 char drcom_keepalive_info2[16];
 char drcom_u40_timer[2];
-char drcom_u40_1_timer[2];
-char drcom_u40_2_timer[2];
+
 
 char revData[RECV_BUF_LEN];
 
@@ -448,7 +447,7 @@ int send_alive_u40(uint8 type){
 
     memcpy(pkt_data+data_index,drcom_mydllver,2);
     data_index+=2;
-    
+
 
     pkt_data[data_index++] = 0x00;	//此处为两位随机生成值，用于分辨同一组包，但置零并不会影响功能
     pkt_data[data_index++] = 0x00;
