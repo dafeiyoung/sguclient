@@ -38,7 +38,7 @@ void U40ResponseParser();
 void FillCheckSum(uint8 *ChallengeFromU8, uint16 Length, uint8 *CheckSum);
 void DecodeU244Response(uint8* buf);
 
-int udp_send_and_rev(char* send_buf, int send_len, char* recv_buf);
+int udp_send_and_rev(uint8 *send_buf, int send_len, uint8 *recv_buf);
 
 static void perrorAndSleep(char* str);
 static printAll(char* str);
@@ -88,7 +88,7 @@ int SendU8GetChallenge()
     * +------+----------+----------+-----------------+
     */
 	const int pkt_data_len = 8;
-	char pkt_data[8] =
+	uint8 pkt_data[8] =
 	    { 0x07, 0x00, 0x08, 0x00, 0x01, 0x00, 0x00, 0x00 };
 
 	memset(revData, 0, RECV_BUF_LEN);
@@ -143,7 +143,7 @@ int SendU244Login()
     * +-----+-----+-----+-------+-------+-------------------+
     * |  07 | 01  | f4  | 00 03 |  0b   | XX XX XX XX XX XX |
     * +-----+-----+--+--+-------+-------+-------------------+
-    * |    客户端IP   |  定值1,与版本有关  |  U8[8:11] 质询值   |
+    * |    客户端IP   |  定值1,与版本有关  |  U8[8:12] 质询值   |
     * +--------------+------------------+-------------------+
     * | c0 a8 XX XX  |  02  22  00  31  |   XX  XX  XX  XX  |
     * +--------------+----------+-------+-------------------+
@@ -196,7 +196,7 @@ int SendU244Login()
      *    来自Log文件中的AuthModuleFileHash段
     */
     const int pkt_data_len = 244;
-    char pkt_data[pkt_data_len];
+    uint8 pkt_data[pkt_data_len];
 
     memset(pkt_data, 0, pkt_data_len);
     int data_index = 0;
@@ -433,8 +433,36 @@ void FillCheckSum(uint8 *ChallengeFromU8, uint16 Length, uint8 *CheckSum){
  * =====================================================================================
  */
 int SendU40DllUpdater(uint8 type){
+    /*数据包U40系列 (上下行均适用)
+    * +------+-------+-------+-----+-----+------------+
+    * | 标头  | 计数器 |  长度  | 类型 | 步骤 | MyDllVer  |
+    * +------+-------+-------+-----+-----+-----------+
+    * |  07  |  XX   | 28 00 | 0b  |  0X |  dc 02    |
+    * +------+-+-----+-----+-+----++-----+-----------+
+    * | 随机值  |   6字节零#  |    时间码    |  四字节零   |
+    * +--------+-----------+-------------+-----------+
+    * | 00  00 | 00 ... 00 | XX XX XX XX | 00 ... 00 |
+    * +--------+----+------+------+------+-----------+
+    * |    校验值*   |   客户端IP*   |     八字节零      |
+    * +-------------+------+------+------+-----------+
+    * | XX XX XX XX | c0 a8 XX XX | 00 00 ... 00 00  |
+    * +-------------+-------------+------+-----------+
+    *
+    * 计数器：
+    *  每个来回会加1。注意，如果收到的回包是U40-6，也会加1
+    * 步骤：
+    *  程序中U40-n的数字n值得就是这个步骤。奇数为客户端->服务端。偶数反之
+    * 时间码：
+    *  服务端发回数据包时，会更新时间码，需要记录。
+    * 6字节零#：
+    *  如果是U40-6，则从这里开始格式变为：四字节零(而不是六)，四字节某种长度，四字节某种校验值，四字节零，四字节某种版本，文件载荷
+    * 校验值*：
+    *  只存在于U40-3，其他包均为0。目前暂时没有实现其计算，因为服务端好像不是很在乎这个？
+    * 客户端IP*：
+    *  只存在于U40-3，其他包均为0。
+    */
     const int pkt_data_len = 40;
-    char pkt_data[pkt_data_len];
+    uint8 pkt_data[pkt_data_len];
 
     memset(pkt_data, 0, pkt_data_len);
     int data_index = 0;
@@ -474,55 +502,76 @@ int SendU40DllUpdater(uint8 type){
  *  	 Output:  成功返回0
  * =====================================================================================
  */
-int SendU38HeartBeat()
-{
-	const int pkt_data_len = 38;
-	char pkt_data[pkt_data_len];
-	memset(pkt_data, 0, pkt_data_len);
-	int data_index = 0;
+int SendU38HeartBeat(){
+    /*数据包U38系列
+   * +------+-----------+----------------+
+   * | 标头  |  七字节零   | U8[8:12] 质询值 |
+   * +------+-----------+----------------+
+   * |  ff  | 00 ... 00 |  XX XX  XX XX  |
+   * +------+-----------+------+---------+---+
+   * |         U38 校验值       |    "Drco"   |
+   * +-------------------------+--------+----+
+   * | XX XX XX XX XX XX XX XX | 44 72 63 6f |
+   * +-------------+-----------+-------------+------+----------------+-------+
+   * |    服务端IP  | OffsetId  |    客户端IP   | 常数 | ClientBufSerno | 随机数  |
+   * +-------------+-----------+-------------+------+----------------+-------+
+   * | c0 a8 7f 81 |  XX   XX  | c0 a8 XX XX |  01  |       XX       | XX XX |
+   * +-------------+-----------+-------------+------+----------------+-------+
+   * U38校验值:
+   *  产生方式与U244的那个应该是一样的
+   */
+   const int pkt_data_len = 38;
+   uint8 pkt_data[pkt_data_len];
+   memset(pkt_data, 0, pkt_data_len);
+   int data_index = 0;
 
-	pkt_data[data_index++] = 0xff;	// Code
+   pkt_data[data_index++] = 0xff;	// Code
 
-    data_index+=7;
-    memcpy(pkt_data + data_index, DrInfo.ChallengeTimer, 4);
-    data_index+=4;
-    FillCheckSum(DrInfo.ChallengeTimer, 4, pkt_data + data_index);
-	data_index += 8;
-    char Drco[] =
-            { 'D', 'r', 'c', 'o'};
-    memcpy(pkt_data + data_index, Drco, 4);
-    data_index+=4;
-    uint32  ServerIp=inet_addr(DR_SERVER_IP);
-    memcpy(pkt_data + data_index,&ServerIp,sizeof (ServerIp));
-    data_index+=4;
-    memcpy(pkt_data+data_index,DrInfo.ServerOffsetId,2);
-    data_index+=2;
-    memcpy(pkt_data + data_index, &my_ip.sin_addr, 4);
-	data_index += 4;
-    pkt_data[data_index++]=0x01;
-    memcpy(pkt_data+data_index,DrInfo.ServerClientBufSerno,1);
-    data_index+=1;
+   data_index+=7;
+   memcpy(pkt_data + data_index, DrInfo.ChallengeTimer, 4);
+   data_index+=4;
+   FillCheckSum(DrInfo.ChallengeTimer, 4, pkt_data + data_index);
+   data_index += 8;
 
-    pkt_data[data_index++]=0x00;
-    pkt_data[data_index++]=0x00;//对包码
+   char Drco[] =
+           { 'D', 'r', 'c', 'o'};
+   memcpy(pkt_data + data_index, Drco, 4);
+   data_index+=4;
+
+   uint32  ServerIp=inet_addr(DR_SERVER_IP);
+   memcpy(pkt_data + data_index,&ServerIp,sizeof (ServerIp));
+   data_index+=4;
+
+   memcpy(pkt_data+data_index,DrInfo.ServerOffsetId,2);
+   data_index+=2;
+
+   memcpy(pkt_data + data_index, &my_ip.sin_addr, 4);
+   data_index += 4;
+
+   pkt_data[data_index++]=0x01;
+   memcpy(pkt_data+data_index,DrInfo.ServerClientBufSerno,1);
+   data_index+=1;
+
+   pkt_data[data_index++]=0x00;
+   pkt_data[data_index++]=0x00;//对包码,用于分辩同一组包
 
 
-    memset(revData, 0, RECV_BUF_LEN);
-	int revLen =
-	    udp_send_and_rev(pkt_data, pkt_data_len, revData);
+   memset(revData, 0, RECV_BUF_LEN);
+   int revLen =
+       udp_send_and_rev(pkt_data, pkt_data_len, revData);
 
-	return 0;
+   return 0;
 
 }
 
 /*
- * ===  FUNCTION  ======================================================================
- *         Name:  init_env_d
- *  Description:  初始化socket
- *  	  Input:  无
- *  	 Output:  无
- * =====================================================================================
- */
+* ===  FUNCTION  ======================================================================
+*         Name:  init_env_d
+*  Description:  初始化socket
+*  	  Input:  无
+*  	 Output:  无
+* =====================================================================================
+*/
 // init socket
 void init_env_d()
 {
@@ -587,7 +636,7 @@ void init_dial_env()
  *  	 Output:  返回接收的长度
  * =====================================================================================
  */
-int udp_send_and_rev(char* send_buf, int send_len, char* recv_buf)
+int udp_send_and_rev(uint8 *send_buf, int send_len, uint8 *recv_buf)
 {
 	int nrecv_send, addrlen = sizeof(struct sockaddr_in);
 	struct sockaddr_in clntaddr;
