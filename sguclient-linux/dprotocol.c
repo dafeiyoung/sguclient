@@ -496,7 +496,8 @@ int SendU38HeartBeat()		//keepalive
             { 'D', 'r', 'c', 'o'};
     memcpy(pkt_data + data_index, Drco, 4);
     data_index+=4;
-    //memcpy(pkt_data + data_index,DR_SERVER_IP) 这个不对啊
+    uint32  ServerIp=inet_addr(DR_SERVER_IP);
+    memcpy(pkt_data + data_index,&ServerIp,sizeof (ServerIp));
     data_index+=4;
     memcpy(pkt_data+data_index,DrInfo.ServerOffsetId,2);
     data_index+=2;
