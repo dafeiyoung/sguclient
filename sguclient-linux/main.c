@@ -208,7 +208,8 @@ int main(int argc, char **argv)
 
     //进入回呼循环。以后的动作由回呼函数get_packet驱动，
     //直到pcap_break_loop执行，退出程序。
-    pcap_loop (handle, -2, get_packet, NULL);   /* main loop */
+        pcap_loop (handle, -2, get_packet, NULL);   /* main loop */
+        //todo：这玩意为什么不会和drprotocol的recvfrom冲突
     pcap_close (handle);
     return 0;
 }
