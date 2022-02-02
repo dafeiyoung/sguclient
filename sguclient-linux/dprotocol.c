@@ -18,21 +18,31 @@
 
 #include "dprotocol.h"
 
-
-char drcom_challenge[4];
-char drcom_mydllver[2];
-char drcom_keepalive_info[4];
-char drcom_keepalive_info2[16];
-char drcom_u40_timer[2];
-
-
-char revData[RECV_BUF_LEN];
-
-int send_alive_u40(uint8 type);
+dr_info DrInfo;
+uint8 revData[RECV_BUF_LEN];
 
 static int  sock;
 static struct sockaddr_in clientaddr;
 static struct sockaddr_in drcomaddr;
+
+
+int SendU8GetChallenge();
+int SendU244Login();
+int SendU38HeartBeat();
+int SendU40DllUpdater(uint8 type);
+
+void U8ResponseParser();
+void U244ResponseParser();
+void U40ResponseParser();
+
+void FillCheckSum(uint8 *ChallengeFromU8, uint16 Length, uint8 *CheckSum);
+void DecodeU244Response(uint8* buf);
+
+int udp_send_and_rev(char* send_buf, int send_len, char* recv_buf);
+
+static void perrorAndSleep(char* str);
+static printAll(char* str);
+
 
 /*
  * ===  FUNCTION  ======================================================================
@@ -62,13 +72,13 @@ uint32_t drcom_crc32(char *data, int data_len)
 
 /*
  * ===  FUNCTION  ======================================================================
- *         Name:  send_start_request
+ *         Name:  SendU8GetChallenge
  *  Description:  发起drcom协议的认证(发送长度为8的数据包)
  *  	  Input:  无
  *  	 Output:  成功返回0；失败返回-1
  * =====================================================================================
  */
-int send_start_request()
+int SendU8GetChallenge()
 {
     /*数据包U8，长度固定为8字节，必须在EAP结束后尽快发出
     * +------+----------+----------+-----------------+
@@ -110,8 +120,6 @@ int send_start_request()
 	if (revData[0] != 0x07)	// Start Response
 		return -1;
 
-	memcpy(drcom_challenge, revData + 8, 4);	// Challenge
-    memcpy(drcom_challenge, revData +25, 2);    // Ver for U40
 #if DRCOM_DEBUG_ON > 0
 	print_hex_drcom(drcom_challenge, 4);
 #endif
@@ -121,13 +129,13 @@ int send_start_request()
 
 /*
  * ===  FUNCTION  ======================================================================
- *         Name:  send_login_auth
+ *         Name:  SendU244Login
  *  Description:  发起drcom协议的登录（发送包含用户名、主机名等信息的长度为244的数据包）
  *  	  Input:  无
  *  	 Output:  成功返回0
  * =====================================================================================
  */
-int send_login_auth()
+int SendU244Login()
 {
     /*U244，长度固定为32字节，
     * +-----+-----+-----+-------+-------+-------------------+
@@ -218,12 +226,12 @@ int send_login_auth()
     pkt_data[data_index++] = 0x31;
 
     // 0x0014 challenge
-    memcpy(pkt_data + data_index, drcom_challenge, 4);
+    memcpy(pkt_data + data_index, DrInfo.ChallengeTimer, 4);
     data_index += 4;
 
     // 0x0018 checkSum
 
-    FillU244CheckSum(drcom_challenge, sizeof(drcom_challenge), &pkt_data[data_index]);
+    FillCheckSum(DrInfo.ChallengeTimer, sizeof(DrInfo.ChallengeTimer), &pkt_data[data_index]);
     data_index+=8;
 
     // 0x0020  帐号 + 计算机名
@@ -325,11 +333,7 @@ int send_login_auth()
     *
     *  要注意这里会连回两个包，紧接着这个的就是服务端的公告了
     */
-    	unsigned char *keepalive_info = revData + 16;
-    	for (i = 0; i < 16; i++)
-    	{
-    		drcom_keepalive_info2[i] = (unsigned char) ((keepalive_info[i] << (i & 0x07)) + (keepalive_info[i] >> (8 - (i & 0x07))));
-    	}
+
 
     #if DRCOM_DEBUG_ON > 0
         DecodeU244Response(revData);
@@ -340,15 +344,15 @@ int send_login_auth()
 }
 /*
  * ===  FUNCTION  ======================================================================
- *         Name:  FillU244CheckSum
- *  Description:  生成新版协议中U244的校验值
+ *         Name:  FillCheckSum
+ *  Description:  生成新版协议中U244/U38所需的的校验值
  *  	  Input:  *ChallengeFromU8:指向U8发来的质询值;
  *  	          Length:质询值的长度;
  *  	          *CheckSum:计算完成的校验值，长8个字节
  *  	 Output:  无
  * =====================================================================================
  */
-void FillU244CheckSum(uint8 *ChallengeFromU8, uint16 Length, uint8 *CheckSum){
+void FillCheckSum(uint8 *ChallengeFromU8, uint16 Length, uint8 *CheckSum){
 
     uint8  Hash[16 + 4]={0};//16 for md4/5 and 20 for sha1
     uint8  ChallengeFromU8Extended[32]={0};
@@ -368,6 +372,7 @@ void FillU244CheckSum(uint8 *ChallengeFromU8, uint16 Length, uint8 *CheckSum){
 #endif
 
     type= ChallengeFromU8[0] & 0x03;//这其实是最后两位，但是因为大小端的问题，服务器发出来的时候就跑到最前面了
+
     if (type==2) {
 
         md4(ChallengeFromU8Extended, Length, Hash);
@@ -425,13 +430,13 @@ void FillU244CheckSum(uint8 *ChallengeFromU8, uint16 Length, uint8 *CheckSum){
 
 /*
  * ===  FUNCTION  ======================================================================
- *         Name:  send_alive_u40
+ *         Name:  SendU40DllUpdater
  *  Description:  发送drcom长度为40的数据包，这种包每次出现都是两个来回一组。第一/三个包由客户端发送
  *  	  Input:  type:包类型，可选1或3;
  *  	 Output:  成功返回0
  * =====================================================================================
  */
-int send_alive_u40(uint8 type){
+int SendU40DllUpdater(uint8 type){
     const int pkt_data_len = 40;
     char pkt_data[pkt_data_len];
 
@@ -445,7 +450,7 @@ int send_alive_u40(uint8 type){
     pkt_data[data_index++] = 0x0B;	// Step
     pkt_data[data_index++] = type;  // Type
 
-    memcpy(pkt_data+data_index,drcom_mydllver,2);
+    memcpy(pkt_data+data_index,DrInfo.MyDllVer,2);
     data_index+=2;
 
 
@@ -453,7 +458,7 @@ int send_alive_u40(uint8 type){
     pkt_data[data_index++] = 0x00;
 
 
-    memcpy(pkt_data + 16, drcom_u40_timer, 4);
+    memcpy(pkt_data + 16, DrInfo.ChallengeTimer, 4);
 
     memset(revData, 0, RECV_BUF_LEN);
     int revLen =
@@ -462,24 +467,18 @@ int send_alive_u40(uint8 type){
     print_hex_drcom(revData, revLen);
 #endif
 
-    drcom_pkt_counter++;
-    if (revData[5]==0x06){ //File 类
-        printf("Got dll from U40. Ignored \n");
-    }else{
-        drcom_pkt_counter++;
-        memcpy(drcom_u40_timer, revData + 16, 2);// 只有不是File的时候revData[16:18]才是时间
-    }
+
     return 0;
 }
 /*
  * ===  FUNCTION  ======================================================================
- *         Name:  send_alive_begin
- *  Description:  发起drcom协议的心跳包，即“Alive,client to server per 20s”（发送长度为38的数据包）
+ *         Name:  SendU38HeartBeat
+ *  Description:  发起DrCom协议的心跳包U38
  *  	  Input:  无
  *  	 Output:  成功返回0
  * =====================================================================================
  */
-int send_alive_begin()		//keepalive
+int SendU38HeartBeat()		//keepalive
 {
 	const int pkt_data_len = 38;
 	char pkt_data[pkt_data_len];
@@ -488,13 +487,30 @@ int send_alive_begin()		//keepalive
 
 	pkt_data[data_index++] = 0xff;	// Code
 
-	memcpy(pkt_data + data_index, drcom_keepalive_info, 4);
-	data_index += 19;
+    data_index+=7;
+    memcpy(pkt_data + data_index, DrInfo.ChallengeTimer, 4);
+    data_index+=4;
+    FillCheckSum(DrInfo.ChallengeTimer, 4, pkt_data + data_index);
+	data_index += 8;
+    char Drco[] =
+            { 'D', 'r', 'c', 'o'};
+    memcpy(pkt_data + data_index, Drco, 4);
+    data_index+=4;
+    //memcpy(pkt_data + data_index,DR_SERVER_IP) 这个不对啊
+    data_index+=4;
+    memcpy(pkt_data+data_index,DrInfo.ServerOffsetId,2);
+    data_index+=2;
+    memcpy(pkt_data + data_index, &my_ip.sin_addr, 4);
+	data_index += 4;
+    pkt_data[data_index++]=0x01;
+    memcpy(pkt_data+data_index,DrInfo.ServerClientBufSerno,1);
+    data_index+=1;
 
-	memcpy(pkt_data + data_index, drcom_keepalive_info2, 16);
-	data_index += 16;
+    pkt_data[data_index++]=0x00;
+    pkt_data[data_index++]=0x00;//对包码
 
-	memset(revData, 0, RECV_BUF_LEN);
+
+    memset(revData, 0, RECV_BUF_LEN);
 	int revLen =
 	    udp_send_and_rev(pkt_data, pkt_data_len, revData);
 
@@ -594,7 +610,51 @@ int udp_send_and_rev(char* send_buf, int send_len, char* recv_buf)
 
 	return nrecv_send;
 }
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name:  U8ResponseParser
+ *  Description:  分析U8响应包，提取信息
+ *  	  Input:  无
+ *  	 Output:  无
+ * =====================================================================================
+ */
+void U8ResponseParser(){
+    memcpy(DrInfo.MyDllVer,revData+28,4);
+    memcpy(DrInfo.ChallengeTimer,revData+8,4);
+}
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name:  U244ResponseParser
+ *  Description:  分析U244响应包，提取信息
+ *  	  Input:  无
+ *  	 Output:  无
+ * =====================================================================================
+ */
+void U244ResponseParser(){
+    DecodeU244Response(revData);
+    uint8 *pBuf = &revData[revData[2] - revData[6]];//指向解密后的加密载荷的起始处
+    memcpy(DrInfo.ServerOffsetId,pBuf+8,2);
+    memcpy(DrInfo.ServerClientBufSerno,pBuf+15,1);
+}
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name:  U40ResponseParser
+ *  Description:  分析U40响应包，提取信息
+ *  	  Input:  无
+ *  	 Output:  无
+ * =====================================================================================
+ */
+void U40ResponseParser(){
+    if (revData[5]==0x06){ //File 类
+        //这种包可能是用来更新mydll用的，但是发过来的dll不完整.当然最好不要完整发过来，那个文件看起来不小
+        //正常来讲如果不主动发U40-5或发送含有错误版本的U40-1/3时是不会进入这里的
+        memcpy(DrInfo.MyDllVer,revData+28,4);//所以这里还是更新一下MyDllVer比较好
+        printf("Got dll from U40. Ignored \n");
 
+    }else{
+        memcpy(DrInfo.ChallengeTimer, revData + 16, 2);// 只有不是File的时候revData[16:19]才是时间
+    }
+}
 /*
  * ===  FUNCTION  ======================================================================
  *         Name:  perrorAndSleep
@@ -644,25 +704,28 @@ void* serve_forever_d(void *args)
 	while(1)//todo:检查是否涵盖所有情况
 	{
 		sleep(2);
-		if ( xstatus == XOFFLINE)  //802.1x还没有上线
+		if ( xstatus == XOFFLINE)  //802.1x还没有上线  //todo:会不会有上完线又下线然后又需要上线的情况
 		{
 			continue ;
 		}
 
 		if ( needToSendXStart )
 		{
-			ret = send_start_request();
+			ret = SendU8GetChallenge();
 			if(ret != 0)
 			{
 				printf("login = start request error\n");
 				return NULL;
 			}
 			needToSendXStart = 0;
+            continue;
 		}
-        if ((revData[0]=0x07)&&(revData[4]=0x02)){ //Response for start request
-            printf("Drcom Got: Response for start request\n");
+        //下面开始处理收到的数据包 //todo:会不会一个包被重复处理多次？
+        if ((revData[0]=0x07)&&(revData[4]=0x02)){ //Response for start request U8
+            printf("Drcom Got: Response for start request U8\n");
+            U8ResponseParser();
             if (dstatus==DOFFLINE){ //还没有发送U244
-                ret = send_login_auth();
+                ret = SendU244Login();
                 if(ret != 0)
                 {
                     printf("login = login error\n");
@@ -670,22 +733,24 @@ void* serve_forever_d(void *args)
                 }
             }else if ( dstatus == DONLINE )  //drcom协议 已经上线成功
             {
-                sleep(3);
-                ret = send_alive_u40(1);//todo：这个不该写在这里
+
+                ret = SendU38HeartBeat();
                 if(ret != 0)
                 {
                     printf("login = alive phase 1 error\n");
                     continue;
                 }
             }
+            continue;
         }
 
 		if ( (revData[0] == 0x07) && (revData[4] == 0x04) )  //U244登录成功
 		{
+            U244ResponseParser();
 			printf("Drcom Got: U244 login response\n");
 			dstatus = DONLINE;
 			printf("@@drcom login successfully!\n");
-			ret = send_alive_u40(1);
+			ret = SendU40DllUpdater(1);
 			if(ret != 0)
 			{
 				printf("login = alive phase 1 error\n");
@@ -693,29 +758,19 @@ void* serve_forever_d(void *args)
 			}
 		}
 
-        if ((revData[0] == 0x07) && (revData[4] == 0x0b) && (revData[5] == 0x02))  //Misc Type2
+        if ((revData[0] == 0x07) && (revData[4] == 0x0b) )  //U40-X
 		{
-			printf("Drcom Got: U40 response phase 2\n");
-			ret = send_alive_u40(3);
-			if(ret != 0)
-			{
-				printf("keep = alive phase 2 error\n");
-				continue;
-			}
+            U40ResponseParser();
+            if (revData[5] == 0x02){
+                printf("Drcom Got: U40 response phase 2\n");
+                SendU40DllUpdater(3);
+            }else if (revData[5] == 0x04){
+                printf("Drcom Got: U40 response phase 4\n");
+                printf("@@drcom keep successfully!\n");
+                sleep(10);
+			}drcom_pkt_counter++;
 		}
 
-		if ( (revData[0] == 0x07) && (revData[5] == 0x04) )  //Misc Type4//todo: what is this?
-		{
-			printf("Drcom Got: Misc Type4\n");
-			printf("@@drcom keep successfully!\n");
-			sleep(8);
-			ret = send_alive_begin();
-			if(ret != 0)
-			{
-				printf("keep = begin alive error\n");
-				continue;
-			}
-		}
 	}
 
 	close(sock);
@@ -734,9 +789,11 @@ void DecodeU244Response(uint8* buf) {
         tempRight = pBuf[i] >> (8 - shift);
         pBuf[i] = tempRight + tempLeft;
     }
-    for (int i = 0; i < len; ++i) {
+#ifdef DRCOM_DEBUG_ON
+    for (int i = 0; i < buf[2]; ++i) {
         if (i && i % 7 == 0)printf("\n");
-        printf("0x%.2x  ", pBuf[i]);
-
+        printf("0x%.2x  ", buf[i]);
     }
+#endif
+
 }
