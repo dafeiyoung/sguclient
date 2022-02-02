@@ -423,32 +423,7 @@ void FillU244CheckSum(uint8 *ChallengeFromU8, uint16 Length, uint8 *CheckSum){
 
     }
 }
-/*
- * ===  FUNCTION  ======================================================================
- *         Name:  send_alive_pkt1
- *  Description:  发起DrCom协议的1类型杂项包（U40-1）
- *  	  Input:  无
- *  	 Output:  成功返回0
- * =====================================================================================
- */
-int send_alive_pkt1()
-{
-     send_alive_u40(1);
-}
 
-
-/*
- * ===  FUNCTION  ======================================================================
- *         Name:  send_alive_pkt2
- *  Description:  发起drcom协议的3类型杂项包（发送长度为40的数据包）
- *  	  Input:  无
- *  	 Output:  成功返回0
- * =====================================================================================
- */
-int send_alive_pkt2()
-{
-    send_alive_u40(3);
-}
 /*
  * ===  FUNCTION  ======================================================================
  *         Name:  send_alive_u40
@@ -473,9 +448,7 @@ int send_alive_u40(uint8 type){
 
     memcpy(pkt_data+data_index,drcom_mydllver,2);
     data_index+=2;
-
-    /*pkt_data[data_index++] = 0xdc;
-    pkt_data[data_index++] = 0x02;*/
+    
 
     pkt_data[data_index++] = 0x00;	//此处为两位随机生成值，用于分辨同一组包，但置零并不会影响功能
     pkt_data[data_index++] = 0x00;
@@ -669,7 +642,7 @@ void* serve_forever_d(void *args)
 
 	int needToSendXStart = 1;
 
-	while(1)//todo:检查是否涵盖所有情况 
+	while(1)//todo:检查是否涵盖所有情况
 	{
 		sleep(2);
 		if ( xstatus == XOFFLINE)  //802.1x还没有上线
