@@ -200,7 +200,7 @@ void DrcomAuthenticationEntry()
  * =====================================================================================
  */
 void auto_reconnect(int sleep_time_sec)
-{   
+{   //会有三种情况进入此处，一是timeout，二和三分别为移动与电信的EAP_Failure
     //重新初始化一些变量
     global_id = 1;
     sleep(sleep_time_sec);
@@ -939,30 +939,6 @@ void fill_password_md5(uint8_t attach_key[], uint8_t eap_id)
 
         free (psw_key);
     }
-}
-
-/*
- * ===  FUNCTION  ======================================================================
- *         Name:  fill_uname_md5
- *  Description:  给RESPONSE_MD5_KEEP_ALIVE报文填充相应的MD5值。
- *  只会在接受到REQUEST_MD5_KEEP_ALIVE报文之后才进行，因为需要
- *  其中的Key
- * =====================================================================================
- */
-void fill_uname_md5(uint8_t attach_key[], uint8_t eap_id)
-{
-    char *uname_key;
-    char *md5;
-
-    uname_key = malloc(username_length + 4);
-    memcpy (uname_key, username, username_length);
-    memcpy (uname_key + username_length, attach_key, 4);
-
-    md5 = get_md5_digest(uname_key,username_length + 4);
-    eap_response_md5ch[14+5]=eap_id;
-    memcpy (eap_response_md5ch + 13 + 10, md5, 16);
-
-    free (uname_key);
 }
 
 
