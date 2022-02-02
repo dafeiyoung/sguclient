@@ -23,11 +23,13 @@ char drcom_challenge[4];
 char drcom_mydllver[2];
 char drcom_keepalive_info[4];
 char drcom_keepalive_info2[16];
-char drcom_misc1_flux[4];
-char drcom_misc3_flux[4];
+char drcom_u40_timer[2];
+char drcom_u40_1_timer[2];
+char drcom_u40_2_timer[2];
 
 char revData[RECV_BUF_LEN];
 
+int send_alive_u40(uint8 type);
 
 static int  sock;
 static struct sockaddr_in clientaddr;
@@ -61,13 +63,13 @@ uint32_t drcom_crc32(char *data, int data_len)
 
 /*
  * ===  FUNCTION  ======================================================================
- *         Name:  start_request
+ *         Name:  send_start_request
  *  Description:  发起drcom协议的认证(发送长度为8的数据包)
  *  	  Input:  无
  *  	 Output:  成功返回0；失败返回-1
  * =====================================================================================
  */
-int start_request()
+int send_start_request()
 {
     /*数据包U8，长度固定为8字节，必须在EAP结束后尽快发出
     * +------+----------+----------+-----------------+
@@ -431,53 +433,9 @@ void FillU244CheckSum(uint8 *ChallengeFromU8, uint16 Length, uint8 *CheckSum){
  */
 int send_alive_pkt1()
 {
-	const int pkt_data_len = 40;
-	char pkt_data[pkt_data_len];
-
-	memset(pkt_data, 0, pkt_data_len);
-	int data_index = 0;
-	pkt_data[data_index++] = 0x07;	// Code
-	pkt_data[data_index++] = drcom_pkt_counter; //计数器
-	pkt_data[data_index++] = 0x28;	//len(40低位)
-	pkt_data[data_index++] = 0x00;  //len(40高位)
-	pkt_data[data_index++] = 0x0B;	// Step
-	pkt_data[data_index++] = 0x01;
-
-    memcpy(pkt_data+data_index,drcom_mydllver,2);
-    data_index+=2;
-
-	/*pkt_data[data_index++] = 0xdc;
-	pkt_data[data_index++] = 0x02;*/
-
-	pkt_data[data_index++] = 0x00;	//此处为两位随机生成值，用于分辨同一组包，但置零并不会影响功能
-	pkt_data[data_index++] = 0x00;
-
-	memcpy(pkt_data + 16, drcom_misc1_flux, 4);
-
-	memset(revData, 0, RECV_BUF_LEN);
-	int revLen =
-	    udp_send_and_rev(pkt_data, pkt_data_len, revData);
-#if DRCOM_DEBUG_ON > 0
-	print_hex_drcom(revData, revLen);
-#endif
-
-
-	if (revData[0] != 0x07 && revData[0] !=0x4d)	// Misc
-		return -1;
-
-	if (revData[5] == 0x06 || revData[0] == 0x4d)	// File
-	{
-		return send_alive_pkt1();
-	} 
-	else 
-	{
-		drcom_pkt_counter++;
-
-		memcpy(&drcom_misc3_flux, revData + 16, 4);
-		return 0;
-	}
-
+     send_alive_u40(1);
 }
+
 
 /*
  * ===  FUNCTION  ======================================================================
@@ -489,46 +447,58 @@ int send_alive_pkt1()
  */
 int send_alive_pkt2()
 {
-	const int pkt_data_len = 40;
-	char pkt_data[pkt_data_len];
+    send_alive_u40(3);
+}
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name:  send_alive_u40
+ *  Description:  发送drcom长度为40的数据包，这种包每次出现都是两个来回一组。第一/三个包由客户端发送
+ *  	  Input:  type:包类型，可选1或3;
+ *  	 Output:  成功返回0
+ * =====================================================================================
+ */
+int send_alive_u40(uint8 type){
+    const int pkt_data_len = 40;
+    char pkt_data[pkt_data_len];
 
-	memset(pkt_data, 0, pkt_data_len);
-	int data_index = 0;
-	pkt_data[data_index++] = 0x07;	// Code
-	pkt_data[data_index++] = drcom_pkt_counter;
-	pkt_data[data_index++] = 0x28;	//len(40低位)
-	pkt_data[data_index++] = 0x00;  //len(40高位)
+    memset(pkt_data, 0, pkt_data_len);
+    int data_index = 0;
+    pkt_data[data_index++] = 0x07;	// Code
+    pkt_data[data_index++] = drcom_pkt_counter;
+    pkt_data[data_index++] = 0x28;	//len(40低位)
+    pkt_data[data_index++] = 0x00;  //len(40高位)
 
-	pkt_data[data_index++] = 0x0B;	// Step
-	pkt_data[data_index++] = 0x03;  // Type
+    pkt_data[data_index++] = 0x0B;	// Step
+    pkt_data[data_index++] = type;  // Type
 
     memcpy(pkt_data+data_index,drcom_mydllver,2);
     data_index+=2;
 
-	/*pkt_data[data_index++] = 0xdc;
-	pkt_data[data_index++] = 0x02;*/
+    /*pkt_data[data_index++] = 0xdc;
+    pkt_data[data_index++] = 0x02;*/
 
-	pkt_data[data_index++] = 0x00;	//此处为两位随机生成值，用于分辨同一组包，但置零并不会影响功能
-	pkt_data[data_index++] = 0x00;
+    pkt_data[data_index++] = 0x00;	//此处为两位随机生成值，用于分辨同一组包，但置零并不会影响功能
+    pkt_data[data_index++] = 0x00;
 
 
-	memcpy(pkt_data + 16, drcom_misc3_flux, 4);
-	memcpy(pkt_data + 28, &my_ip, 4);
+    memcpy(pkt_data + 16, drcom_u40_timer, 4);
 
-	memset(revData, 0, RECV_BUF_LEN);
-	int revLen =
-	    udp_send_and_rev(pkt_data, pkt_data_len, revData);
+    memset(revData, 0, RECV_BUF_LEN);
+    int revLen =
+            udp_send_and_rev(pkt_data, pkt_data_len, revData);
 #if DRCOM_DEBUG_ON > 0
-	print_hex_drcom(revData, revLen);
+    print_hex_drcom(revData, revLen);
 #endif
 
-	drcom_pkt_counter++;
-
-	memcpy(drcom_misc1_flux, revData + 16, 4);
-	return 0;
-
+    drcom_pkt_counter++;
+    if (revData[5]==0x06){ //File 类
+        printf("Got dll from U40. Ignored \n");
+    }else{
+        drcom_pkt_counter++;
+        memcpy(drcom_u40_timer, revData + 16, 2);// 只有不是File的时候revData[16:18]才是时间
+    }
+    return 0;
 }
-
 /*
  * ===  FUNCTION  ======================================================================
  *         Name:  send_alive_begin
@@ -699,7 +669,7 @@ void* serve_forever_d(void *args)
 
 	int needToSendXStart = 1;
 
-	while(1)
+	while(1)//todo:检查是否涵盖所有情况 
 	{
 		sleep(2);
 		if ( xstatus == XOFFLINE)  //802.1x还没有上线
@@ -709,7 +679,7 @@ void* serve_forever_d(void *args)
 
 		if ( needToSendXStart )
 		{
-			ret = start_request();
+			ret = send_start_request();
 			if(ret != 0)
 			{
 				printf("login = start request error\n");
@@ -717,37 +687,33 @@ void* serve_forever_d(void *args)
 			}
 			needToSendXStart = 0;
 		}
+        if ((revData[0]=0x07)&&(revData[4]=0x02)){ //Response for start request
+            printf("Drcom Got: Response for start request\n");
+            if (dstatus==DOFFLINE){ //还没有发送U244
+                ret = send_login_auth();
+                if(ret != 0)
+                {
+                    printf("login = login error\n");
+                    continue;
+                }
+            }else if ( dstatus == DONLINE )  //drcom协议 已经上线成功
+            {
+                sleep(3);
+                ret = send_alive_u40(1);//todo：这个不该写在这里
+                if(ret != 0)
+                {
+                    printf("login = alive phase 1 error\n");
+                    continue;
+                }
+            }
+        }
 
-		if ( (revData[0] == 0x07) && (revData[2] == 0x10) )  //Misc,Response for alive(or Misc,File)
+		if ( (revData[0] == 0x07) && (revData[4] == 0x04) )  //U244登录成功
 		{
-			printf("Drcom Got: Misc,Response for alive(or Misc,File)\n");
-			if ( dstatus == DOFFLINE )  //drcom协议 还没有上线成功
-			{
-				ret = send_login_auth();
-				if(ret != 0)
-				{
-					printf("login = login error\n");
-					continue;
-				}
-			}
-			if ( dstatus == DONLINE )  //drcom协议 已经上线成功
-			{
-				sleep(3);
-				ret = send_alive_pkt1();
-				if(ret != 0)
-				{
-					printf("login = alive phase 1 error\n");
-					continue;
-				}
-			}
-		}
-
-		if ( (revData[0] == 0x07) && (revData[2] == 0x30) )  //Misc,3000 
-		{
-			printf("Drcom Got: Misc,3000\n");
+			printf("Drcom Got: U244 login response\n");
 			dstatus = DONLINE;
 			printf("@@drcom login successfully!\n");
-			ret = send_alive_pkt1();
+			ret = send_alive_u40(1);
 			if(ret != 0)
 			{
 				printf("login = alive phase 1 error\n");
@@ -755,10 +721,10 @@ void* serve_forever_d(void *args)
 			}
 		}
 
-		if ( (revData[0] == 0x07) && (revData[5] == 0x02) )  //Misc Type2
+        if ((revData[0] == 0x07) && (revData[4] == 0x0b) && (revData[5] == 0x02))  //Misc Type2
 		{
-			printf("Drcom Got: Misc Type2\n");
-			ret = send_alive_pkt2();
+			printf("Drcom Got: U40 response phase 2\n");
+			ret = send_alive_u40(3);
 			if(ret != 0)
 			{
 				printf("keep = alive phase 2 error\n");
@@ -766,7 +732,7 @@ void* serve_forever_d(void *args)
 			}
 		}
 
-		if ( (revData[0] == 0x07) && (revData[5] == 0x04) )  //Misc Type4
+		if ( (revData[0] == 0x07) && (revData[5] == 0x04) )  //Misc Type4//todo: what is this?
 		{
 			printf("Drcom Got: Misc Type4\n");
 			printf("@@drcom keep successfully!\n");
