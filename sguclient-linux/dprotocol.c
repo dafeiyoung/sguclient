@@ -117,7 +117,7 @@ int SendU8GetChallenge()
     *    从其他数据包来看，这里应该是保存包长度用的，但U8的响应包这里却是错的 (0x10=0d16!=0d32)
     *  如果没有特别注明，则所有数据段均为网络端序（也就是大端序）
     */
-	if (revData[0] != 0x07)	// Start Response
+	if (revData[0] != 0x07 || revData[4] != 0x02)	// Start Response
 		return -1;
 
 #if DRCOM_DEBUG_ON > 0
@@ -307,10 +307,9 @@ int SendU244Login()
     	print_hex_drcom(pkt_data,pkt_data_len);
     #endif
 
-        memset(revData, 0, RECV_BUF_LEN);
+   // memset(revData, 0, RECV_BUF_LEN);
+    int revLen = udp_send_and_rev(pkt_data, pkt_data_len, revData);
 
-    	int revLen =
-    	    udp_send_and_rev(pkt_data, pkt_data_len, revData);
     #if DRCOM_DEBUG_ON > 0
     	print_hex_drcom(revData, revLen);
     #endif
@@ -334,12 +333,12 @@ int SendU244Login()
     *  要注意这里会连回两个包，紧接着这个的就是服务端的公告了
     */
 
-
     #if DRCOM_DEBUG_ON > 0
         DecodeU244Response(revData);
     	print_hex_drcom(drcom_keepalive_info2, 16);
     #endif
-
+    if (revData[0] != 0x07 || revData[4] != 0x04)
+        return -1;
     return 0;
 }
 /*
@@ -490,7 +489,8 @@ int SendU40DllUpdater(uint8 type){
 #if DRCOM_DEBUG_ON > 0
     print_hex_drcom(revData, revLen);
 #endif
-
+    if (revData[0] != 0x07 || revData[4] != 0x0b)
+        return -1;
 
     return 0;
 }
@@ -559,7 +559,8 @@ int SendU38HeartBeat(){
    memset(revData, 0, RECV_BUF_LEN);
    int revLen =
        udp_send_and_rev(pkt_data, pkt_data_len, revData);
-
+    if (revData[0] != 0x07 || revData[4] != 0x06)	// Start Response
+        return -1;
    return 0;
 
 }
