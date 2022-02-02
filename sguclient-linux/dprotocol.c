@@ -20,6 +20,7 @@
 
 
 char drcom_challenge[4];
+char drcom_mydllver[2];
 char drcom_keepalive_info[4];
 char drcom_keepalive_info2[16];
 char drcom_misc1_flux[4];
@@ -109,7 +110,7 @@ int start_request()
 		return -1;
 
 	memcpy(drcom_challenge, revData + 8, 4);	// Challenge
-
+    memcpy(drcom_challenge, revData +25, 2);    // Ver for U40
 #if DRCOM_DEBUG_ON > 0
 	print_hex_drcom(drcom_challenge, 4);
 #endif
@@ -442,10 +443,13 @@ int send_alive_pkt1()
 	pkt_data[data_index++] = 0x0B;	// Step
 	pkt_data[data_index++] = 0x01;
 
-	pkt_data[data_index++] = 0xdc;	//todo: 来自U8回包的ver
-	pkt_data[data_index++] = 0x02;
+    memcpy(pkt_data+data_index,drcom_mydllver,2);
+    data_index+=2;
 
-	pkt_data[data_index++] = 0x00;	//todo:"两位随机生成值，用于分辨同一组包"
+	/*pkt_data[data_index++] = 0xdc;
+	pkt_data[data_index++] = 0x02;*/
+
+	pkt_data[data_index++] = 0x00;	//此处为两位随机生成值，用于分辨同一组包，但置零并不会影响功能
 	pkt_data[data_index++] = 0x00;
 
 	memcpy(pkt_data + 16, drcom_misc1_flux, 4);
@@ -498,10 +502,13 @@ int send_alive_pkt2()
 	pkt_data[data_index++] = 0x0B;	// Step
 	pkt_data[data_index++] = 0x03;  // Type
 
-	pkt_data[data_index++] = 0xdc;	//todo: 来自U8回包的ver
-	pkt_data[data_index++] = 0x02;
+    memcpy(pkt_data+data_index,drcom_mydllver,2);
+    data_index+=2;
 
-	pkt_data[data_index++] = 0x00;	//todo:"两位随机生成值，用于分辨同一组包"
+	/*pkt_data[data_index++] = 0xdc;
+	pkt_data[data_index++] = 0x02;*/
+
+	pkt_data[data_index++] = 0x00;	//此处为两位随机生成值，用于分辨同一组包，但置零并不会影响功能
 	pkt_data[data_index++] = 0x00;
 
 
