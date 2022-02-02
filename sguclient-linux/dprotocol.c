@@ -92,7 +92,6 @@ int SendU8GetChallenge()
 	uint8 pkt_data[8] =
 	    { 0x07, 0x00, 0x08, 0x00, 0x01, 0x00, 0x00, 0x00 };
 
-	memset(revData, 0, RECV_BUF_LEN);
 
 	int revLen =
 	    udp_send_and_rev(pkt_data, pkt_data_len, revData);
@@ -560,7 +559,6 @@ int SendU38HeartBeat(){
    pkt_data[data_index++]=0x00;//对包码,用于分辩同一组包
 
 
-   memset(revData, 0, RECV_BUF_LEN);
    int revLen =
        udp_send_and_rev(pkt_data, pkt_data_len, revData);
     if (revData[0] != 0x07 || revData[4] != 0x06)	// Start Response
