@@ -421,10 +421,6 @@ void FillCheckSum(uint8 *ChallengeFromU8, uint16 Length, uint8 *CheckSum){
         *((uint32 *)CheckSum + 1)= checkCPULittleEndian()==0? big2little_32(126):126;
         //本想绕开大小端的，但那样会打断常量
 
-    }else{//这段是不是可以删掉
-
-        printf("ERROR:收到不支持的U8质询值！\n");
-
     }
 }
 
@@ -478,7 +474,7 @@ int SendU40DllUpdater(uint8 type){
  *  	 Output:  成功返回0
  * =====================================================================================
  */
-int SendU38HeartBeat()		//keepalive
+int SendU38HeartBeat()
 {
 	const int pkt_data_len = 38;
 	char pkt_data[pkt_data_len];
