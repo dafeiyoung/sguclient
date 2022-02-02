@@ -36,6 +36,7 @@ void U244ResponseParser();
 void U40ResponseParser();
 
 void FillCheckSum(uint8 *ChallengeFromU8, uint16 Length, uint8 *CheckSum);
+uint32 GetU38_3Sum(uint8 *buf);
 void DecodeU244Response(uint8* buf);
 
 int udp_send_and_rev(uint8 *send_buf, int send_len, uint8 *recv_buf);
@@ -456,7 +457,7 @@ int SendU40DllUpdater(uint8 type){
     * 6字节零#：
     *  如果是U40-6，则从这里开始格式变为：四字节零(而不是六)，四字节某种长度，四字节某种校验值，四字节零，四字节某种版本，文件载荷
     * 校验值*：
-    *  只存在于U40-3，其他包均为0。目前暂时没有实现其计算，因为服务端好像不是很在乎这个？
+    *  只存在于U40-3，其他包均为0。
     * 客户端IP*：
     *  只存在于U40-3，其他包均为0。
     */
@@ -483,7 +484,10 @@ int SendU40DllUpdater(uint8 type){
 
     memcpy(pkt_data + 16, DrInfo.ChallengeTimer, 4);
 
-    memset(revData, 0, RECV_BUF_LEN);
+    if (type==3){//只有U40-3需要校验值
+        uint32  CheckSum = GetU38_3Sum(pkt_data);
+        memcpy(pkt_data+24,&CheckSum,4);
+    }
     int revLen =
             udp_send_and_rev(pkt_data, pkt_data_len, revData);
 #if DRCOM_DEBUG_ON > 0
@@ -564,7 +568,23 @@ int SendU38HeartBeat(){
    return 0;
 
 }
-
+/*
+* ===  FUNCTION  ======================================================================
+*         Name:  FillU38_3Sum
+*  Description:  填充U38-3校验值
+*  	  Input:  buf，指向数据包内容
+*  	 Output:  无
+* =====================================================================================
+*/
+uint32 GetU38_3Sum(uint8 *buf){
+    int16_t v7 = 0;
+    uint16_t v5 = 0;
+    for (int i = 0; i < 20; i++) {
+        memcpy(&v7, &buf[2*i], 2);
+        v5 ^= v7;
+    }
+    return (uint32)(v5*711);
+}
 /*
 * ===  FUNCTION  ======================================================================
 *         Name:  init_env_d
