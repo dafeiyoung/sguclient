@@ -180,7 +180,7 @@ void DrcomAuthenticationEntry()
         init_dial_env();
         init_env_d();
 
-        ret = pthread_create(&dtid, NULL, serve_forever_d, NULL);
+        ret = pthread_create(&dtid, NULL, DrComServerDaemon, NULL);
         if( 0 != ret)
         {
             perror("Create Drcom Thread Failed!");

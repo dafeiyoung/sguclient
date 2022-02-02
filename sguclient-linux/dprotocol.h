@@ -52,7 +52,8 @@ char dstatusMsg[256];
 
 void init_dial_env(void);
 void init_env_d();
-void* serve_forever_d(void *args);
+
+void* DrComServerDaemon(void *args);
 
 typedef struct {//注意端序
     uint8 ChallengeTimer[4];        //LE，本身是一个计数器，但被服务端兼Challenge使用
