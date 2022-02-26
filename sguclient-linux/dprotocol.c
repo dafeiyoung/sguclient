@@ -120,7 +120,7 @@ int SendU8GetChallenge()
     */
 	if (revData[0] != 0x07 || revData[4] != 0x02)	// Start Response
 		return -1;
-
+    U8ResponseParser();
 #if DRCOM_DEBUG_ON > 0
 	print_hex_drcom(drcom_challenge, 4);
 #endif
