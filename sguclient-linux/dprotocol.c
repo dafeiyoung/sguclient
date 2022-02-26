@@ -786,9 +786,9 @@ void* serve_forever_d(void *args)
             continue;
 		}
         //下面开始处理收到的数据包 //todo:会不会一个包被重复处理多次？
-        if ((revData[0]=0x07)&&(revData[4]=0x02)){ //Response for start request U8
-            printf("Drcom Got: Response for start request U8\n");
-            U8ResponseParser();
+        if ((revData[0]==0x07)&&(revData[4]==0x02)){ //Response for start request U8
+            printf("Drcom: Got response for start request U8\n");
+
             if (dstatus==DOFFLINE){ //还没有发送U244
                 ret = SendU244Login();
                 if(ret != 0)
