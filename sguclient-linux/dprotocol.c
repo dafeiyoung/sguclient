@@ -797,8 +797,7 @@ void* serve_forever_d(void *args)
                 {
                     printf("login = login error\n");
                     continue;
-                }
-		dstatus = DONLINE;
+
             }else if ( dstatus == DONLINE )  //drcom协议 已经上线成功
             {
 
