@@ -838,6 +838,19 @@ void* serve_forever_d(void *args)
                 sleep(10);
 			}drcom_pkt_counter++;
 		}
+        if ((revData[0] == 0x07) && (revData[4] == 0x06) )  //U38-R
+        {
+            //U38的回包没啥好处理的
+            printf("Drcom: Got U38 response. Keep alive cycle done!\n");
+            sleep(1);
+            ret = SendU40DllUpdater(1);
+            if(ret != 0)
+            {
+                printf("Drcom: U40 phase 1 error\n");
+                continue;
+            }
+
+        }
 
 	}
 
