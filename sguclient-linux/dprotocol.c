@@ -332,7 +332,7 @@ int SendU244Login()
     *
     *  要注意这里会连回两个包，紧接着这个的就是服务端的公告了
     */
-
+    udp_send_and_rev("0000", 4, revData);//FIXME:如果不多接收一次,那么后面的程序会被公告影响
     #if DRCOM_DEBUG_ON > 0
         DecodeU244Response(revData);
     	print_hex_drcom(drcom_keepalive_info2, 16);
