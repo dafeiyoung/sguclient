@@ -781,7 +781,7 @@ void* serve_forever_d(void *args)
 			ret = SendU8GetChallenge();
 			if(ret != 0)
 			{
-				printf("login = start request error\n");
+				printf("DrCom: 初始数据包发送失败!\n");
 				return NULL;
 			}
             needToSendDrComStart = 0;
@@ -797,6 +797,7 @@ void* serve_forever_d(void *args)
                 {
                     printf("login = login error\n");
                     continue;
+                }
 
             }else if ( dstatus == DONLINE )  //drcom协议 已经上线成功
             {
@@ -856,7 +857,7 @@ void DecodeU244Response(uint8* buf) {
         tempRight = pBuf[i] >> (8 - shift);
         pBuf[i] = tempRight + tempLeft;
     }
-#ifdef DRCOM_DEBUG_ON
+#if DRCOM_DEBUG_ON>0
     for (int i = 0; i < buf[2]; ++i) {
         if (i && i % 7 == 0)printf("\n");
         printf("0x%.2x  ", buf[i]);
