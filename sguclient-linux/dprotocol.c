@@ -20,6 +20,7 @@
 
 dr_info DrInfo;
 uint8 revData[RECV_BUF_LEN];
+uint8 revData2[RECV_BUF_LEN]; //专门放那个公告,因为我不知道怎么丢弃这份数据
 
 static int  sock;
 static struct sockaddr_in clientaddr;
@@ -332,13 +333,14 @@ int SendU244Login()
     *
     *  要注意这里会连回两个包，紧接着这个的就是服务端的公告了
     */
-    udp_send_and_rev("0000", 4, revData);//FIXME:如果不多接收一次,那么后面的程序会被公告影响
+
     #if DRCOM_DEBUG_ON > 0
         DecodeU244Response(revData);
     	print_hex_drcom(drcom_keepalive_info2, 16);
     #endif
     if (revData[0] != 0x07 || revData[4] != 0x04)
         return -1;
+    udp_send_and_rev("0000", 4, revData2);//FIXME:如果不多接收一次,那么后面的程序会被公告影响
     return 0;
 }
 /*
