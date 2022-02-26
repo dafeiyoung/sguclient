@@ -42,7 +42,7 @@ void DecodeU244Response(uint8* buf);
 int udp_send_and_rev(uint8 *send_buf, int send_len, uint8 *recv_buf);
 
 static void perrorAndSleep(char* str);
-static printAll(char* str);
+static void printAll(char* str);
 
 
 /*
