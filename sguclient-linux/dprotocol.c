@@ -764,7 +764,7 @@ void* serve_forever_d(void *args)
 	dstatus = DOFFLINE;
 	strcpy(dstatusMsg, "please log on first");
 
-	int needToSendXStart = 1;
+	int needToSendDrComStart = 1;
 
 	while(1)//todo:检查是否涵盖所有情况
 	{
@@ -774,7 +774,7 @@ void* serve_forever_d(void *args)
 			continue ;
 		}
 
-		if ( needToSendXStart )
+		if ( needToSendDrComStart )
 		{
 			ret = SendU8GetChallenge();
 			if(ret != 0)
@@ -782,7 +782,7 @@ void* serve_forever_d(void *args)
 				printf("login = start request error\n");
 				return NULL;
 			}
-			needToSendXStart = 0;
+            needToSendDrComStart = 0;
             continue;
 		}
         //下面开始处理收到的数据包 //todo:会不会一个包被重复处理多次？
