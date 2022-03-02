@@ -107,15 +107,13 @@ void    init_frames();
 void    init_info();
 void    init_device();
 void    init_arguments(int *argc, char ***argv);
-int     set_device_new_ip();
+
 void    fill_password_md5(uint8_t attach_key[], uint8_t eap_id);
-void    fill_uname_md5(uint8_t attach_key[], uint8_t eap_id);
+
 int     program_running_check();
 void    daemon_init(void);
 void    show_local_info();
-void    print_server_info (const uint8_t *packet, uint16_t packetlength);
-int     code_convert(char *from_charset, char *to_charset,
-             char *inbuf, size_t inlen, char *outbuf, size_t outlen);
+
 void    printNotification(const struct eap_header *eap_header);
 void    time_out_handler();
 unsigned int    generateRandomPort();

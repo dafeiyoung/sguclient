@@ -647,12 +647,12 @@ void init_dial_env()
 	//const char dev_dest[ETH_ALEN] = {0x01, 0x80, 0xc2, 0x00, 0x00, 0x03};
 	const char dev_dest[ETH_ALEN] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
-	
+
 	/* set struct sockaddr_ll for sendto function
 	 sa_ll: global value, in "xprotocol.h" */
 	sa_ll.sll_family = PF_PACKET;
 	sa_ll.sll_protocol = htons(ETH_P_ALL);
-	sa_ll.sll_ifindex = if_nametoindex(interface_name);   
+	sa_ll.sll_ifindex = if_nametoindex(interface_name);
 	sa_ll.sll_hatype = 0;
 	sa_ll.sll_pkttype = PACKET_HOST | PACKET_BROADCAST  | PACKET_MULTICAST;
 	memcpy(sa_ll.sll_addr, dev_dest, ETH_ALEN);
@@ -660,12 +660,11 @@ void init_dial_env()
 	sock =  create_ethhdr_sock(&eth_header); // eth_header,sock: global value
 
 }
-
 /*
  * ===  FUNCTION  ======================================================================
  *         Name:  udp_send_and_rev
  *  Description:  发送并接收udp协议的数据包
- *  	  Input:  *send_buf: 指向待发送数据的指针; send_len: 待发送数据的长度; 
+ *  	  Input:  *send_buf: 指向待发送数据的指针; send_len: 待发送数据的长度;
  				  *recv_buf: 指向接收缓冲区的指针
  *  	 Output:  返回接收的长度
  * =====================================================================================
@@ -734,6 +733,8 @@ void U40ResponseParser(){
     }else{
         memcpy(DrInfo.ChallengeTimer, revData + 16, 2);// 只有不是File的时候revData[16:19]才是时间
     }
+#endif
+
 }
 /*
  * ===  FUNCTION  ======================================================================
@@ -765,13 +766,13 @@ static void printAll(char* str){
 
 /*
  * ===  FUNCTION  ======================================================================
- *         Name:  serve_forever_d
+ *         Name:  DrComServerDaemon
  *  Description:  drcom认证主程序
  *  	  Input:  *args: 传入的参数指针(并不需要)
  *  	 Output:  无
  * =====================================================================================
  */
-void* serve_forever_d(void *args)
+void* DrComServerDaemon(void *args)
 {
 	int ret;
 
