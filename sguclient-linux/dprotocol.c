@@ -37,7 +37,7 @@ void U244ResponseParser();
 void U40ResponseParser();
 
 void FillCheckSum(uint8 *ChallengeFromU8, uint16 Length, uint8 *CheckSum);
-uint32 GetU38_3Sum(uint8 *buf);
+uint32 GetU40_3Sum(uint8 *buf);
 void DecodeU244Response(uint8* buf);
 
 int udp_send_and_rev(uint8 *send_buf, int send_len, uint8 *recv_buf);
@@ -491,7 +491,7 @@ int SendU40DllUpdater(uint8 type){
     memcpy(pkt_data + 16, DrInfo.ChallengeTimer, 4);
 
     if (type==3){//只有U40-3需要校验值
-        uint32  CheckSum = GetU38_3Sum(pkt_data);
+        uint32  CheckSum = GetU40_3Sum(pkt_data);
         memcpy(pkt_data+24,&CheckSum,4);
     }
     int revLen =
@@ -589,7 +589,7 @@ int SendU38HeartBeat(){
 *  	 Output:  无
 * =====================================================================================
 */
-uint32 GetU38_3Sum(uint8 *buf){
+uint32 GetU40_3Sum(uint8 *buf){
     int16_t v7 = 0;
     uint16_t v5 = 0;
     for (int i = 0; i < 20; i++) {
