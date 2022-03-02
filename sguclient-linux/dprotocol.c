@@ -848,8 +848,8 @@ void* serve_forever_d(void *args)
                 SendU40DllUpdater(3);
             }else if (revData[5] == 0x04){
                 printf("Drcom: Got U40 response phase 4, U40 cycle done\n");
-                printf("Drcom: Now waiting for 10s before sending next U8\n");
-                sleep(10);//
+                printf("Drcom: Waiting for 10s before sending next U8\n");
+                sleep(10);
                 ret = SendU8GetChallenge();
                 DrInfo.U8Counter++;
                 if(ret != 0)
