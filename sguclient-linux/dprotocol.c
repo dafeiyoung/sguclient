@@ -530,7 +530,7 @@ int SendU38HeartBeat(){
    * U38校验值:
    *  产生方式与U244的那个应该是一样的
    */
-    printf("1\n");
+
    const int pkt_data_len = 38;
    uint8 pkt_data[pkt_data_len];
    memset(pkt_data, 0, pkt_data_len);
@@ -544,7 +544,7 @@ int SendU38HeartBeat(){
     printf("2\n");
    FillCheckSum(DrInfo.ChallengeTimer, 4, pkt_data + data_index);
    data_index += 8;
-    printf("3\n");
+
    char Drco[] =
            { 'D', 'r', 'c', 'o'};
    memcpy(pkt_data + data_index, Drco, 4);
@@ -567,8 +567,12 @@ int SendU38HeartBeat(){
    pkt_data[data_index++]=0x00;
    pkt_data[data_index++]=0x00;//对包码,用于分辩同一组包
 
-    printf("4\n");
-    //fixme 出于未知的原因 会卡在4-5之间
+
+    for (int i = 0; i < 38; ++i) {
+        if (i && i % 7 == 0)printf("\n");
+        printf("0x%.2x  ", pkt_data[i]);
+    }
+
    int revLen =
        udp_send_and_rev(pkt_data, pkt_data_len, revData);
     if (revData[0] != 0x07 || revData[4] != 0x06)	// Start Response
