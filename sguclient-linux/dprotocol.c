@@ -37,7 +37,7 @@ void U244ResponseParser();
 void U40ResponseParser();
 
 void FillCheckSum(uint8 *ChallengeFromU8, uint16 Length, uint8 *CheckSum);
-uint32 GetU38_3Sum(uint8 *buf);
+uint32 GetU40_3Sum(uint8 *buf);
 void DecodeU244Response(uint8* buf);
 
 int udp_send_and_rev(uint8 *send_buf, int send_len, uint8 *recv_buf);
@@ -84,15 +84,17 @@ int SendU8GetChallenge()
 {
     /*数据包U8，长度固定为8字节，必须在EAP结束后尽快发出
     * +------+----------+----------+-----------------+
-    * | 标头  |   长度   |   类型    |   零填充         |
-    * +------+----------+----------+-----------------+
-    * |  07  |  00  08  |  00  01  |   00   00   00  |
-    * +------+----------+----------+-----------------+
+    * | 标头  |计数器|长度 |   类型    |   零填充         |
+    * +------+-----+----+----------+-----------------+
+    * |  07  |  XX | 08 |  00  01  |   00   00   00  |
+    * +------+-----+----+----------+-----------------+
+    * 计数器:
+    *   首次发送时是0,然后就从2开始往后数
     */
 	const int pkt_data_len = 8;
 	uint8 pkt_data[8] =
 	    { 0x07, 0x00, 0x08, 0x00, 0x01, 0x00, 0x00, 0x00 };
-
+    memcpy(&pkt_data[1],&DrInfo.U8Counter,sizeof(uint8));
 
 	int revLen =
 	    udp_send_and_rev(pkt_data, pkt_data_len, revData);
@@ -100,21 +102,23 @@ int SendU8GetChallenge()
 	print_hex_drcom(revData, revLen);
 #endif
     /*数据包U8的响应，长度固定为32字节
-    * +------+-----------+---------+-------+------------+-----------+
-    * | 标头  | 错误的长度 |   类型   |算法选择|      零     |    时间码  |
-    * +------+----------+---------+------+-+------------+-----------+
-    * |  07  |  00  10  | 00  02 |   8X  |  00 00 00   |XX XX XX XX |
+    * +------+-----+-----+---------+-------+------------+-----------+
+    * | 标头  |计数器|长度|   类型   |算法选择|      零     |    时间码  |
+    * +------+-----+----+---------+------+-+------------+-----------+
+    * |  07  | XX |10  | 00  02 |   8X  |  00 00 00   |XX XX XX XX |
     * +------+-------+--+--------+----+--+-------------+------------+
     * |    客户端IP   |      某种长度   |       零        |    某种版本 |
     * +--------------+----------------+--------------+-+------------+
     * | c0 a8 XX XX  | a8  ac  00  00 |  00 00 00 00 | dc 02 00 00  |
     * +--------------+----------------+--------------+--------------+
+    *  计数器:
+    *    原样送回
     *  时间码：
     *    小端序，且最靠近包头的一字节的最后两bit会用来决定U244校验值的产生算法（一共有3种
     *    在新版加密中不接受最后两bit均为0的情况），且整个时间码会被用来当质询值
     *  算法选择：
     *    转换成二进制后，高八位固定为 1000。低八位的最后两位据观察总与上面用来决定U244校验算法的选择位一致
-    *  错误的长度：
+    *  长度：
     *    从其他数据包来看，这里应该是保存包长度用的，但U8的响应包这里却是错的 (0x10=0d16!=0d32)
     *  如果没有特别注明，则所有数据段均为网络端序（也就是大端序）
     */
@@ -487,7 +491,7 @@ int SendU40DllUpdater(uint8 type){
     memcpy(pkt_data + 16, DrInfo.ChallengeTimer, 4);
 
     if (type==3){//只有U40-3需要校验值
-        uint32  CheckSum = GetU38_3Sum(pkt_data);
+        uint32  CheckSum = GetU40_3Sum(pkt_data);
         memcpy(pkt_data+24,&CheckSum,4);
     }
     int revLen =
@@ -526,7 +530,7 @@ int SendU38HeartBeat(){
    * U38校验值:
    *  产生方式与U244的那个应该是一样的
    */
-    printf("1\n");
+
    const int pkt_data_len = 38;
    uint8 pkt_data[pkt_data_len];
    memset(pkt_data, 0, pkt_data_len);
@@ -540,7 +544,7 @@ int SendU38HeartBeat(){
     printf("2\n");
    FillCheckSum(DrInfo.ChallengeTimer, 4, pkt_data + data_index);
    data_index += 8;
-    printf("3\n");
+
    char Drco[] =
            { 'D', 'r', 'c', 'o'};
    memcpy(pkt_data + data_index, Drco, 4);
@@ -563,8 +567,12 @@ int SendU38HeartBeat(){
    pkt_data[data_index++]=0x00;
    pkt_data[data_index++]=0x00;//对包码,用于分辩同一组包
 
-    printf("4\n");
-    //fixme 出于未知的原因 会卡在4-5之间
+
+    for (int i = 0; i < 38; ++i) {
+        if (i && i % 7 == 0)printf("\n");
+        printf("0x%.2x  ", pkt_data[i]);
+    }
+
    int revLen =
        udp_send_and_rev(pkt_data, pkt_data_len, revData);
     if (revData[0] != 0x07 || revData[4] != 0x06)	// Start Response
@@ -581,7 +589,7 @@ int SendU38HeartBeat(){
 *  	 Output:  无
 * =====================================================================================
 */
-uint32 GetU38_3Sum(uint8 *buf){
+uint32 GetU40_3Sum(uint8 *buf){
     int16_t v7 = 0;
     uint16_t v5 = 0;
     for (int i = 0; i < 20; i++) {
@@ -823,6 +831,7 @@ void* serve_forever_d(void *args)
             U244ResponseParser();
 			printf("Drcom: Got U244 login response, U244 login success\n");
 			dstatus = DONLINE;
+            DrInfo.U8Counter=2;//登录成功后是从2开始数
 			ret = SendU40DllUpdater(1);
 			if(ret != 0)
 			{
@@ -839,9 +848,10 @@ void* serve_forever_d(void *args)
                 SendU40DllUpdater(3);
             }else if (revData[5] == 0x04){
                 printf("Drcom: Got U40 response phase 4, U40 cycle done\n");
-                printf("Drcom: Now waiting for 10s before sending next U8\n");
-                sleep(10);//
+                printf("Drcom: Waiting for 10s before sending next U8\n");
+                sleep(10);
                 ret = SendU8GetChallenge();
+                DrInfo.U8Counter++;
                 if(ret != 0)
                 {
                     printf("DrCom: 初始数据包发送失败!\n");
