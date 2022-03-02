@@ -59,6 +59,7 @@ typedef struct {//注意端序
     uint8 ServerOffsetId[2];        //具体含义未知。推测与服务端内部实现有关
     uint8 ServerClientBufSerno[1];  //具体含义未知。推测与服务端内部实现有关
     uint8 MyDllVer[4];              //LE，与防宽带共享模块有关。推测服务端没有开启此功能，但是这个版本号需要保存
+    uint8 U8Counter;                //U8的计数器
 }dr_info;
 
 #endif
