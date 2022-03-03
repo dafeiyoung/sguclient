@@ -58,17 +58,25 @@ jobs:
     # If this step fails, then you should remove it and run the build manually (see below)
     - name: Autobuild
       uses: github/codeql-action/autobuild@v1
-
+      
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v2.3.1
+      with:
+         # Artifact name
+         name: sguclient
+         # A file, directory or wildcard pattern that describes what to upload
+         path: ./sguclient
+         # The desired behavior if no files are found using the provided path.
+         if-no-files-found: error
+         # Duration after which artifact will expire in days. 0 means using default retention. Minimum 1 day. Maximum 90 days unless changed from the repository settings page.
+         retention-days: 30
+         
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 https://git.io/JvXDl
 
     # ✏️ If the Autobuild fails above, remove it and uncomment the following three lines
     #    and modify them (or add more) to build your code if your project
     #    uses a compiled language
-
-    #- run: |
-    #   make bootstrap
-    #   make release
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
