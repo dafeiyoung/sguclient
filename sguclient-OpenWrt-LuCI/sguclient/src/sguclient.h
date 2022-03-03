@@ -52,15 +52,6 @@
 /* SGUClient Version */
 #define SGU_VER "release 0.20"
 
-/* 内嵌Drcom协议版本
- * 来自客户端主界面及
- * 客户端Log文件夹中auth_log.txt的Build字段
- */
-#define DRCOM_VER "Ver5.2.1(20190905)"
-
-/* 打包时间*/
-#define RELEASE_DATE "2021-10"
-
 /* default snap length (maximum bytes per packet to capture) */
 #define SNAP_LEN 1518
 
@@ -116,15 +107,13 @@ void    init_frames();
 void    init_info();
 void    init_device();
 void    init_arguments(int *argc, char ***argv);
-int     set_device_new_ip();
+
 void    fill_password_md5(uint8_t attach_key[], uint8_t eap_id);
-void    fill_uname_md5(uint8_t attach_key[], uint8_t eap_id);
+
 int     program_running_check();
 void    daemon_init(void);
 void    show_local_info();
-void    print_server_info (const uint8_t *packet, uint16_t packetlength);
-int     code_convert(char *from_charset, char *to_charset,
-             char *inbuf, size_t inlen, char *outbuf, size_t outlen);
+
 void    printNotification(const struct eap_header *eap_header);
 void    time_out_handler();
 unsigned int    generateRandomPort();

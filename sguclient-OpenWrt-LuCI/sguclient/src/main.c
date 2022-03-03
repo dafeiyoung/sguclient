@@ -27,45 +27,16 @@
 #include "dprotocol.h"
 
 #define LOCKFILE "/var/run/sguclient.pid"        /* 锁文件 */
-
 #define LOCKMODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 
 static void signal_interrupted (int signo);
+static void flock_reg();
 
 extern pcap_t      *handle;
 extern int          exit_flag;
 
-int                 lockfile;                  /* 锁文件的描述字 */
+int                 hLockFile;           /* 锁文件的描述字 */
 
-/*
- * ===  FUNCTION  ======================================================================
- *         Name:  flock_reg
- *  Description:  sguclient加锁防止重复运行
- *        Input:  无
- *       Output:  无
- * =====================================================================================
- */
-void flock_reg()
-{
-    char buf[16];
-    struct flock fl;
-    fl.l_start = 0;
-    fl.l_whence = SEEK_SET;
-    fl.l_len = 0;
-    fl.l_type = F_WRLCK;
-    fl.l_pid = getpid();
- 
-    //阻塞式的加锁
-    if (fcntl (lockfile, F_SETLKW, &fl) < 0){
-        perror ("fcntl_reg");
-        exit(1);
-    }
- 
-    //把pid写入锁文件
-    assert (0 == ftruncate (lockfile, 0) );    
-    sprintf (buf, "%ld", (long)getpid());
-    assert (-1 != write (lockfile, buf, strlen(buf) + 1));
-}
 
 /*
  * ===  FUNCTION  ======================================================================
@@ -113,11 +84,17 @@ int program_running_check()
     fl.l_whence = SEEK_SET;
     fl.l_len = 0;
     fl.l_type = F_WRLCK;
- 
-    //尝试获得文件锁
-    if (fcntl (lockfile, F_GETLK, &fl) < 0){
-        perror ("fcntl_get");
+
+    //打开锁文件
+    hLockFile = open (LOCKFILE, O_RDWR | O_CREAT , LOCKMODE); //开启后毋须关闭
+    if (hLockFile < 0){
+        perror ("无法确认锁文件状态");
         exit(1);
+    }
+    //尝试获得文件锁
+    if (fcntl (hLockFile, F_GETLK, &fl) < 0){
+        perror ("fcntl_get");
+        exit(EXIT_FAILURE);
     }
 
     if (exit_flag) {
@@ -128,6 +105,7 @@ int program_running_check()
         }
         else 
             fprintf (stderr, "&&Info: NO SGUClient Running.\n");
+        close(hLockFile);
         exit (EXIT_FAILURE);
     }
 
@@ -138,6 +116,35 @@ int program_running_check()
     }
 
     return fl.l_pid;
+}
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name:  flock_reg
+ *  Description:  sguclient加锁防止重复运行
+ *        Input:  无
+ *       Output:  无
+ * =====================================================================================
+ */
+void flock_reg()
+{
+    char buf[16];
+    struct flock fl;
+    fl.l_start = 0;
+    fl.l_whence = SEEK_SET;
+    fl.l_len = 0;
+    fl.l_type = F_WRLCK;
+    fl.l_pid = getpid();
+
+    //阻塞式的加锁
+    if (fcntl (hLockFile, F_SETLKW, &fl) < 0){
+        perror ("fcntl_reg");
+        exit(1);
+    }
+
+    ftruncate(hLockFile, 0);
+    lseek(hLockFile,0,SEEK_SET);
+    sprintf (buf, "%ld", (long)getpid()); //把pid写入锁文件
+    write (hLockFile, buf, strlen(buf) + 1);
 }
 
 /*
@@ -169,19 +176,13 @@ int main(int argc, char **argv)
     //初始化并解释程序的启动参数
     init_arguments (&argc, &argv);
 
-    //打开锁文件
-    lockfile = open (LOCKFILE, O_RDWR | O_CREAT , LOCKMODE);
-    if (lockfile < 0){
-        perror ("Lockfile");
-        exit(1);
-    }
 
     //检测程序的副本运行（文件锁）
     int ins_pid;
     if ( (ins_pid = program_running_check ()) ) {
         fprintf(stderr,"@@ERROR: SGUClient Already "
                             "Running with PID %d\n", ins_pid);
-        fprintf(stdout, "&&Info: run 'sudo kill %d' before re-running SGUClient'\n\n", ins_pid);
+        fprintf(stdout, "&&Info: run 'sudo kill %d' or %s -k before re-running SGUClient'\n\n", ins_pid,argv[0]);
         exit(EXIT_FAILURE);
     }
 
@@ -207,7 +208,8 @@ int main(int argc, char **argv)
 
     //进入回呼循环。以后的动作由回呼函数get_packet驱动，
     //直到pcap_break_loop执行，退出程序。
-    pcap_loop (handle, -2, get_packet, NULL);   /* main loop */
+        pcap_loop (handle, -2, get_packet, NULL);   /* main loop */
+        //todo：这玩意为什么不会和drprotocol的recvfrom冲突
     pcap_close (handle);
     return 0;
 }
