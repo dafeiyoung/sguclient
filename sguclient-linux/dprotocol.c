@@ -541,7 +541,7 @@ int SendU38HeartBeat(){
    data_index+=7;
    memcpy(pkt_data + data_index, DrInfo.ChallengeTimer, 4);
    data_index+=4;
-    printf("2\n");
+
    FillCheckSum(DrInfo.ChallengeTimer, 4, pkt_data + data_index);
    data_index += 8;
 
@@ -568,16 +568,11 @@ int SendU38HeartBeat(){
    pkt_data[data_index++]=0x00;//对包码,用于分辩同一组包
 
 
-    for (int i = 0; i < 38; ++i) {
-        if (i && i % 7 == 0)printf("\n");
-        printf("0x%.2x  ", pkt_data[i]);
-    }
-
    int revLen =
        udp_send_and_rev(pkt_data, pkt_data_len, revData);
     if (revData[0] != 0x07 || revData[4] != 0x06)	// Start Response
         return -1;
-    printf("5\n");
+
    return 0;
 
 }
