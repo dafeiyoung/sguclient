@@ -733,7 +733,7 @@ void U40ResponseParser(){
     }else{
         memcpy(DrInfo.ChallengeTimer, revData + 16, 2);// 只有不是File的时候revData[16:19]才是时间
     }
-#endif
+
 
 }
 /*
