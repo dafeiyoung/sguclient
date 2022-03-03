@@ -52,7 +52,6 @@ char         *dev = NULL;               /* 连接的设备名 */
 char         *username = NULL;
 char         *password = NULL;
 char         *user_gateway = NULL;      /* 由用户设定的四个报文参数 */
-char         *user_dns = NULL;
 char         *user_ip = NULL;
 char         *user_mask = NULL;
 int           exit_flag = 0;
@@ -70,7 +69,6 @@ size_t         password_length;
 uint32_t       local_ip;			       /* 网卡IP，网络序，下同 */
 uint32_t       local_mask;			       /* subnet mask */
 uint32_t       local_gateway = -1;
-uint32_t       local_dns = -1;
 uint8_t        local_mac[ETHER_ADDR_LEN];  /* MAC地址 */
 
 
@@ -182,7 +180,7 @@ void DrcomAuthenticationEntry()
         init_dial_env();
         init_env_d();
 
-        ret = pthread_create(&dtid, NULL, serve_forever_d, NULL);
+        ret = pthread_create(&dtid, NULL, DrComServerDaemon, NULL);
         if( 0 != ret)
         {
             perror("Create Drcom Thread Failed!");
@@ -202,7 +200,7 @@ void DrcomAuthenticationEntry()
  * =====================================================================================
  */
 void auto_reconnect(int sleep_time_sec)
-{   
+{   //会有三种情况进入此处，一是timeout，二和三分别为移动与电信的EAP_Failure
     //重新初始化一些变量
     global_id = 1;
     sleep(sleep_time_sec);
@@ -254,7 +252,7 @@ void show_usage()
             "SGUClient %s \n"
             "\t  -- Supllicant for ShaoGuan University 802.1x Authentication.\n"
             "\t  -- A client can be used on the whole campus.\n"
-            "\t     Drcom UDP protocol authentication included(%s).\n"
+            "\t     Drcom UDP protocol authentication included(Drcom 5.1.1 X,U62.R110908).\n"
             "\n"
             "  Usage:\n"
             "\tRun under root privilege, usually by `sudo', with your \n"
@@ -282,7 +280,7 @@ void show_usage()
             "\t-i, --isp_type        Specify your ISP type.\n"
             "\t                      'D' for China Telecom(CTCC), 'Y' for China Mobile(CMCC).\n"
             "\t                      Default is D (China Telecom).\n\n"
-            "\t-l                    Tell the process to Logoff.\n\n"
+            "\t-k                    Kill other running SGUClient instance.\n\n"
 
             "\t-h, --help            Show this help.\n\n"
             "\n"
@@ -296,8 +294,8 @@ void show_usage()
             "\tiontship with ShaoGuan University or any other company.\n\n\n"
 
             "\tBug Report? Please join our QQ group: 638138948\n"
-            "\t\t\t\t\t\t\t\t%s\n",
-            SGU_VER,DRCOM_VER,RELEASE_DATE);
+            "\t\t\t\t\t\t\t\t2015-09-13\n",
+            SGU_VER);
 }
 
 
@@ -943,30 +941,6 @@ void fill_password_md5(uint8_t attach_key[], uint8_t eap_id)
     }
 }
 
-/*
- * ===  FUNCTION  ======================================================================
- *         Name:  fill_uname_md5
- *  Description:  给RESPONSE_MD5_KEEP_ALIVE报文填充相应的MD5值。
- *  只会在接受到REQUEST_MD5_KEEP_ALIVE报文之后才进行，因为需要
- *  其中的Key
- * =====================================================================================
- */
-void fill_uname_md5(uint8_t attach_key[], uint8_t eap_id)
-{
-    char *uname_key;
-    char *md5;
-
-    uname_key = malloc(username_length + 4);
-    memcpy (uname_key, username, username_length);
-    memcpy (uname_key + username_length, attach_key, 4);
-
-    md5 = get_md5_digest(uname_key,username_length + 4);
-    eap_response_md5ch[14+5]=eap_id;
-    memcpy (eap_response_md5ch + 13 + 10, md5, 16);
-
-    free (uname_key);
-}
-
 
 /*
  * ===  FUNCTION  ======================================================================
@@ -1000,13 +974,9 @@ void init_info()
     else
         local_gateway = 0;
 
-    if (user_dns)
-        local_dns = inet_addr (user_dns);
-    else
-        local_dns = 0;
 
-    if (local_ip == -1 || local_mask == -1 || local_gateway == -1 || local_dns == -1) {
-        fprintf (stderr,"ERROR: One of specified IP, MASK, Gateway and DNS address\n"
+    if (local_ip == -1 || local_mask == -1 || local_gateway == -1 ) {
+        fprintf (stderr,"ERROR: One of specified IP, MASK or Gateway \n"
                         "in the arguments format error.\n");
         exit(EXIT_FAILURE);
     }
@@ -1154,7 +1124,6 @@ void show_local_info ()
     printf("IP:         %s\n", inet_ntop(AF_INET, &local_ip, buf, 32));
     printf("MASK:       %s\n", inet_ntop(AF_INET, &local_mask, buf, 32));
     printf("Gateway:    %s\n", inet_ntop(AF_INET, &local_gateway, buf, 32));
-    printf("DNS:        %s\n", inet_ntop(AF_INET, &local_dns, buf, 32));
     printf("ISP Type:   %s\n", isp_type_buf);
     printf("Auto Reconnect: %s\n", is_auto_buf);
     if ( isp_type == 'D' )
@@ -1182,6 +1151,7 @@ void init_arguments(int *argc, char ***argv)
         {"auto",        no_argument,        &auto_rec,               1},
         {"noheartbeat", no_argument,        &timeout_alarm_1x,       0},
         {"device",      required_argument,  0,                       2},
+        {"kill",        no_argument,        0,                     'k'},
         {"random",      no_argument,        0,                     'r'},
         {"username",    required_argument,  0,                     'u'},
         {"password",    required_argument,  0,                     'p'},
@@ -1190,7 +1160,6 @@ void init_arguments(int *argc, char ***argv)
         {"mask",        required_argument,  0,                       5},
         {"gateway",     required_argument,  0,                     'g'},
         {"showinfo",    no_argument,        0,                     's'},
-        {"dns",         required_argument,  0,                     'd'},
         {0, 0, 0, 0}
         };
     clientPort = 61440;  //初始化时，客户端默认使用61440端口，若启用random则再产生随机端口来替换
@@ -1198,7 +1167,7 @@ void init_arguments(int *argc, char ***argv)
     while (1) {
         /* getopt_long stores the option index here. */
         int option_index = 0;
-        c = getopt_long ((*argc), (*argv), "u:p:i:g:d:s:r:hbl",
+        c = getopt_long ((*argc), (*argv), "hru:kp:i:g:s",
                         long_options, &option_index);
         if (c == -1)
             break;
@@ -1228,14 +1197,11 @@ void init_arguments(int *argc, char ***argv)
             case 'g':
                 user_gateway = optarg;
                 break;
-            case 'd':
-                user_dns = optarg;
-                break;
             case 's':
                 show_usage();
                 exit(EXIT_SUCCESS);
                 break;
-            case 'l':
+            case 'k':
                 exit_flag = 1;
                 break;
             case 'h':

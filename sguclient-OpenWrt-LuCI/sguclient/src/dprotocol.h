@@ -35,20 +35,32 @@
 #include <sys/types.h>
 #include <fcntl.h>
 
+#include "md4.h"
+#include "md5.h"
+#include "sha1.h"
+
 #define DR_SERVER_IP "192.168.127.129"
 #define DR_PORT 61440
 #define RECV_BUF_LEN 1500
 #define RETRY_TIME 15
 
 
-int drcom_pkt_id; //todo 这个会溢出吗？
-int dstatus;
+uint8 drcom_pkt_counter;
+int  dstatus;
 char dstatusMsg[256];
 
 
 void init_dial_env(void);
 void init_env_d();
-int udp_send_and_rev(char* send_buf, int send_len, char* recv_buf);
-void* serve_forever_d(void *args);
+
+void* DrComServerDaemon(void *args);
+
+typedef struct {//注意端序
+    uint8 ChallengeTimer[4];        //LE，本身是一个计数器，但被服务端兼Challenge使用
+    uint8 ServerOffsetId[2];        //具体含义未知。推测与服务端内部实现有关
+    uint8 ServerClientBufSerno[1];  //具体含义未知。推测与服务端内部实现有关
+    uint8 MyDllVer[4];              //LE，与防宽带共享模块有关。推测服务端没有开启此功能，但是这个版本号需要保存
+    uint8 U8Counter;                //U8的计数器
+}dr_info;
 
 #endif

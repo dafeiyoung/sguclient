@@ -379,3 +379,13 @@ md5_finish(md5_state_t *pms, md5_byte_t digest[16])
     for (i = 0; i < 16; ++i)
 	digest[i] = (md5_byte_t)(pms->abcd[i >> 2] >> ((i & 3) << 3));
 }
+void
+md5( unsigned char *input, int ilen, unsigned char output[16] ){
+    md5_state_t ctx;
+
+    md5_init( &ctx );
+    md5_append( &ctx, input, ilen );
+    md5_finish( &ctx, output );
+
+    memset( &ctx, 0, sizeof( md5_state_t ) );
+}
