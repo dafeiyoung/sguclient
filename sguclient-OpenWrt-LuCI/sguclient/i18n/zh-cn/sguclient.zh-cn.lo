@@ -1,0 +1,56 @@
+msgid "ShaoGuan University 3rd Party Network Authentication Client.<br/><b><font color=\"red\">QQ Group: 638138948</font></b>"
+msgstr "韶关学院第三方校园网拨号器<br/><b><font color=\"red\">QQ群: 638138948</font></b>"
+
+msgid "Enable"
+msgstr "启用"
+
+msgid "Auto Reconnect"
+msgstr "自动重连"
+
+msgid "No 1x Heart Beat"
+msgstr "不需要802.1x心跳"
+
+msgid "1x Username"
+msgstr "内网(校园网)账号"
+
+msgid "1x Password"
+msgstr "内网(校园网)密码"
+
+msgid "ISP Type"
+msgstr "网络运营商类型"
+
+msgid "AuthInterface"
+msgstr "认证网卡"
+
+msgid "Wan IP Address"
+msgstr "认证网卡的IP地址"
+
+msgid "Main control of SGUClient"
+msgstr "SGUClient总开关"
+
+msgid "Reconnect if client went off-line(Generally NOT checked)"
+msgstr "客户端离线时自动重连(一般不勾选)"
+
+msgid "No 802.1x heart beat and cancel alarm(Generally NOT checked)"
+msgstr "不需802.1x心跳并关闭超时闹钟(新宿舍苑专用, 其他苑一般不勾选)"
+
+msgid "Fill in your 802.1x username"
+msgstr "请填入你的内网账号"
+
+msgid "Fill in your 802.1x password"
+msgstr "请填入你的内网密码"
+
+msgid "Chose your ISP Type"
+msgstr "选择你的实际网络运营商类型"
+
+msgid "CTCC(DX)"
+msgstr "电信"
+
+msgid "CMCC(YD)"
+msgstr "移动"
+
+msgid "Chose your authentication interface"
+msgstr "请选择你的内网认证网卡"
+
+msgid "Authentication interface IPv4 address(must be the same as which filled in 'Network-Interfaces')"
+msgstr "请填写上述认证网卡的实际IPv4地址(务必要和‘网络-接口’里填写的完全一样)"
