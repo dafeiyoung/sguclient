@@ -13,7 +13,8 @@ run_sguclient()
 		local isptype
 		local ifname
 		local wanip
-		
+    local cmd
+
 		config_get_bool autoreconnect $1 autoreconnect
 		config_get_bool noheartbeat $1 noheartbeat
 		config_get username $1 username
@@ -21,38 +22,13 @@ run_sguclient()
 		config_get isptype $1 isptype
 		config_get ifname $1 ifname
 		config_get wanip $1 wanip
-		
-		while true
-		do
-			process=`pgrep sguclient`
 
-   			if [ -n "$process" ];then
-        		echo "sguclient is running, ignored..."
-   			else
-        		echo "sguclient not running, trying to start again..."
+    if [ $autoreconnect ];then cmd=$cmd" --auto";fi
+    if [ $noheartbeat ];  then cmd=$cmd" --noheartbeat";fi
 
-        		#----To start sguclient
-                if [ $autoreconnect ]; then
-					if [ $noheartbeat ]; then
-						sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip --auto --noheartbeat &
-					else
-						sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip --auto &
-					fi
-				else
-					if [ $noheartbeat ]; then
-						sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip --noheartbeat &
-					else
-						sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip &
-					fi
-				fi
-					echo "SGUClient has started."
-				#----
+		sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip  $cmd >/tmp/sguclient.log 2>&1 &
+		echo "SGUClient has started."
 
-   			fi
-
-   			sleep 60;
-
-		done  #end of while
 	fi
 }
 
@@ -66,4 +42,12 @@ stop()
 {
 	killall sguclient
 	echo "SGUClient has stoped."
+}
+
+restart()
+{
+  killall sguclient
+  sleep 1
+  config_load sguclient
+  config_foreach run_sguclient login
 }
