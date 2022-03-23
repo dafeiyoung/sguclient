@@ -46,7 +46,8 @@ void DecodeU244Response(uint8* buf);
 int udp_send_and_rev(uint8 *send_buf, int send_len, uint8 *recv_buf);
 
 static void perrorAndSleep(char* str);
-static void printAll(char* str);
+//static void printAll(char* string,int len);
+static void PackDump(const char* string,int len,char * comment);
 
 
 /*
@@ -102,7 +103,7 @@ int SendU8GetChallenge()
 	int revLen =
 	    udp_send_and_rev(pkt_data, pkt_data_len, revData);
 #if DRCOM_DEBUG_ON > 0
-	print_hex_drcom(revData, revLen);
+    PackDump(pkt_data, pkt_data_len,"U8");
 #endif
     /*数据包U8的响应，长度固定为32字节
     * +------+-----+-----+---------+-------+------------+-----------+
@@ -129,7 +130,7 @@ int SendU8GetChallenge()
 		return -1;
     U8ResponseParser();
 #if DRCOM_DEBUG_ON > 0
-	print_hex_drcom(drcom_challenge, 4);
+    PackDump(revData,revLen, "U8R");
 #endif
 
 	return 0;
@@ -312,14 +313,14 @@ int SendU244Login()
     */
 
     #if DRCOM_DEBUG_ON > 0
-    	print_hex_drcom(pkt_data,pkt_data_len);
+    PackDump(pkt_data,pkt_data_len,"U244");
     #endif
 
    // memset(revData, 0, RECV_BUF_LEN);
     int revLen = udp_send_and_rev(pkt_data, pkt_data_len, revData);
 
     #if DRCOM_DEBUG_ON > 0
-    	print_hex_drcom(revData, revLen);
+    PackDump(revData, revLen,"U244R");
     #endif
     /*数据包U244的响应
     * +------+-------+----+--------+------+----------+
@@ -342,8 +343,7 @@ int SendU244Login()
     */
 
     #if DRCOM_DEBUG_ON > 0
-        DecodeU244Response(revData);
-    	print_hex_drcom(drcom_keepalive_info2, 16);
+        PackDump(revData,revLen,"U244R raw");
     #endif
     if (revData[0] != 0x07 || revData[4] != 0x04)
         return -1;
@@ -371,16 +371,14 @@ void FillCheckSum(uint8 *ChallengeFromU8, uint16 Length, uint8 *CheckSum){
     *(uint32*)&ChallengeFromU8Extended[Length]=20161130;//Extending Challenge Code
     Length+=4;
 
-#if DRCOM_DEBUG_ON
-    printf("Challange from u8:\n");
-    for (int i = 0; i < 4; ++i) {
-        printf("0x%.2x  ",*((uint8*)ChallengeFromU8 + i));
-    }
-    printf("\n\n");
-#endif
-
     type= ChallengeFromU8[0] & 0x03;//这其实是最后两位，但是因为大小端的问题，服务器发出来的时候就跑到最前面了
-
+#if DRCOM_DEBUG_ON
+    fprintf(stderr,"Challange from u8:\n");
+    for (int i = 0; i < 4; ++i) {
+        fprintf(stderr,"0x%.2x  ",*((uint8*)ChallengeFromU8 + i));
+    }
+    fprintf(stderr,"\nType:%d",type);
+#endif
     if (type==2) {
 
         md4(ChallengeFromU8Extended, Length, Hash);
@@ -430,6 +428,14 @@ void FillCheckSum(uint8 *ChallengeFromU8, uint16 Length, uint8 *CheckSum){
         //本想绕开大小端的，但那样会打断常量
 
     }
+
+#if DRCOM_DEBUG_ON
+    fprintf(stderr,"Response of this u8:\n");
+    for (int i = 0; i < 8; ++i) {
+        fprintf(stderr,"0x%.2x  ",*((uint8*)CheckSum + i));
+    }
+    fprintf(stderr,"\n");
+#endif
 }
 
 /*
@@ -500,7 +506,8 @@ int SendU40DllUpdater(uint8 type){
     int revLen =
             udp_send_and_rev(pkt_data, pkt_data_len, revData);
 #if DRCOM_DEBUG_ON > 0
-    print_hex_drcom(revData, revLen);
+    PackDump(pkt_data,pkt_data_len,"U40");
+    PackDump(revData, revLen,"U40R");
 #endif
     if (revData[0] != 0x07 || revData[4] != 0x0b)
         return -1;
@@ -570,12 +577,16 @@ int SendU38HeartBeat(){
    pkt_data[data_index++]=0x00;
    pkt_data[data_index++]=0x00;//对包码,用于分辩同一组包
 
-
+#if DRCOM_DEBUG_ON > 0
+    PackDump(pkt_data,pkt_data_len,"U38");
+#endif
    int revLen =
        udp_send_and_rev(pkt_data, pkt_data_len, revData);
     if (revData[0] != 0x07 || revData[4] != 0x06)	// Start Response
         return -1;
-
+#if DRCOM_DEBUG_ON > 0
+    PackDump(revData,revLen,"U38R");
+#endif
    return 0;
 
 }
@@ -751,15 +762,20 @@ static void perrorAndSleep(char* str){
 
 /*
  * ===  FUNCTION  ======================================================================
- *         Name:  printAll
- *  Description:  打印错误信息
- *  	  Input:  *str: 指向待打印字符串的指针
+ *         Name:  PackDump
+ *  Description:  将数据包打印到标准输出错,以便调试
+ *  	  Input:  *str: 指向待打印数据包的指针;len: 待打印数据的长度;comment:说明信息
  *  	 Output:  无
  * =====================================================================================
  */
-static void printAll(char* str){
-	printf("drcom %s\n", str);
-	strcpy(dstatusMsg, str);
+static void PackDump(const char* string,int len,char * comment){
+    fprintf(stderr,"%s: \n",comment);
+    for (int i = 0; i <= len; ++i) {
+        if (i && i % 16 == 0)fprintf(stderr,"\n");
+        fprintf(stderr,"0x%.2x  ",*((uint8*)string + i));
+    }
+    fprintf(stderr,"\n");
+
 }
 
 /*
