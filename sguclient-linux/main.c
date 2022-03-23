@@ -25,7 +25,22 @@
 #include "sguclient.h"
 #include "public.h"
 #include "dprotocol.h"
+int xstatus;  //802.1x状态
+struct sockaddr_ll sa_ll;
+struct ethhdr  eth_header;
+char nodifyMsg[256];
 
+
+char user_id[32];
+char passwd[32];
+char interface_name[32];
+char listen_ip[32];
+int listen_port;
+
+unsigned int clientPort;
+
+struct sockaddr_in my_ip;
+char my_mac[ETH_ALEN];
 #define LOCKFILE "/var/run/sguclient.pid"        /* 锁文件 */
 #define LOCKMODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 

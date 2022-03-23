@@ -45,9 +45,9 @@
 #define RETRY_TIME 15
 
 
-uint8 drcom_pkt_counter;
-int  dstatus;
-char dstatusMsg[256];
+extern uint8 drcom_pkt_counter;
+extern int  dstatus;
+extern char dstatusMsg[256];
 
 
 void init_dial_env(void);

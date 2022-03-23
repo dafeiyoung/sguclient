@@ -21,6 +21,9 @@
 dr_info DrInfo;
 uint8 revData[RECV_BUF_LEN];
 uint8 revData2[RECV_BUF_LEN]; //专门放那个公告,因为我不知道怎么丢弃这份数据
+uint8 drcom_pkt_counter;
+int  dstatus;
+char dstatusMsg[256];
 
 static int  sock;
 static struct sockaddr_in clientaddr;
@@ -844,8 +847,8 @@ void* DrComServerDaemon(void *args)
                 SendU40DllUpdater(3);
             }else if (revData[5] == 0x04){
                 printf("Drcom: Got U40 response phase 4, U40 cycle done\n");
-                printf("Drcom: Waiting for 10s before sending next U8\n");
-                sleep(10);
+                printf("Drcom: Waiting for 8s before sending next U8\n");
+                sleep(8);
                 ret = SendU8GetChallenge();
                 DrInfo.U8Counter++;
                 if(ret != 0)
