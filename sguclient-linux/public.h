@@ -58,6 +58,7 @@ extern int listen_port;
 extern unsigned int clientPort;
 
 extern struct sockaddr_in my_ip;
+extern uint32_t   local_ip;
 extern char my_mac[ETH_ALEN];
 
 

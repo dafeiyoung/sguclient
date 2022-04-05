@@ -206,6 +206,10 @@ int main(int argc, char **argv)
 
     //初始化设备，打开网卡，获得Mac、IP等信息
     get_local_mac();
+    get_local_ip();
+
+    //初始化Pcap
+    init_pcap();
 
     //初始化发送帧的缓冲区
     init_frames ();
@@ -223,8 +227,7 @@ int main(int argc, char **argv)
 
     //进入回呼循环。以后的动作由回呼函数get_packet驱动，
     //直到pcap_break_loop执行，退出程序。
-        pcap_loop (pcapHandle, -2, get_packet, NULL);   /* main loop */
-        //todo：这玩意为什么不会和drprotocol的recvfrom冲突
+    pcap_loop (pcapHandle, -2, get_packet, NULL);   /* main loop */
     pcap_close (pcapHandle);
     return 0;
 }

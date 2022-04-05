@@ -60,13 +60,13 @@ int           reconnect_times = 0;      /* 超时重连次数 */
 
 /* #####   GLOBLE VAR DEFINITIONS   #########################
  *-----------------------------------------------------------------------------
- *  报文相关信息变量，由init_info 、init_device函数初始化。
+ *  报文相关信息变量，由init_info函数初始化。
  *-----------------------------------------------------------------------------*/
 char           dev_if_name[64];
 size_t         username_length;
 size_t         password_length;
 uint32_t       local_ip;			       /* 网卡IP，网络序，下同 */
-uint32_t       local_mask;			       /* subnet mask */
+
 
 uint8_t        local_mac[ETHER_ADDR_LEN];  /* MAC地址 */
 
@@ -173,7 +173,7 @@ void DrcomAuthenticationEntry()
         */
         strcpy(user_id,username);
         strcpy(passwd,password);
-        strcpy(interface_name,dev);
+        strcpy(interface_name,dev); //需要调整位置
 
         // init ip mac and socks
         init_dial_env();
@@ -258,21 +258,17 @@ void show_usage()
             "\taccount info in arguments:\n\n"
             "\t-u, --username           802.1x username.\n"
             "\t-p, --password           802.1x password.\n"
+            "\t--device              Specify which device to use.\n"
+            "\t                      Default is usually eth0.\n\n"
             "\n"
             "  Optional Arguments:\n\n"
             "\t--auto                Enable auto reconnect. Default is disabled.\n"
             "\t                      Generally NO NEEDED!\n\n"
-            "\t--device              Specify which device to use.\n"
-            "\t                      Default is usually eth0.\n\n"
-
             "\t--random              Use random UDP client port during Drcom authentication.\n"
             "\t                      Sguclient will generate a random client port to replace 61440.\n"
             "\t                      Only effect the client. Server port will not be affected.\n\n"
             "\t--noheartbeat         Disable timeout alarm clock when waiting for next 802.1x package.\n"
             "\t                      Timeout should be disabled if there is NO 802.1x heart beat package.\n\n"
-
-            "\t--ip                  Specify your IPv4 address.\n"
-            "\t                      It only takes effect when sguclient can not correctly get IP address.\n\n"
 
             "\t-b, --background      Program fork to background after authentication.\n\n"
 
@@ -961,23 +957,8 @@ void init_info()
     username_length = strlen(username);
     password_length = strlen(password);
 
-    if (user_ip)
-        local_ip = inet_addr (user_ip);
-    else
-        local_ip = 0;
-
-    if (user_mask)
-        local_mask = inet_addr (user_mask);
-    else
-        local_mask = 0;
 
 
-
-    if (local_ip == -1 || local_mask == -1  ) {
-        fprintf (stderr,"ERROR: One of specified IP or MASK  \n"
-                        "in the arguments format error.\n");
-        exit(EXIT_FAILURE);
-    }
 }
 /*
  * ===  FUNCTION  ======================================================================
@@ -1055,7 +1036,39 @@ void get_local_mac()
     }
     memcpy(local_mac, ifr.ifr_hwaddr.sa_data, ETHER_ADDR_LEN);
 }
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name:  get_local_ip
+ *  Description:  根据网卡名获得本机IP地址
+ *
+ * =====================================================================================
+ */
+void get_local_ip(){
+    struct  ifaddrs *ifaddr=NULL;
+    char ip[32];
+    if (getifaddrs(&ifaddr)<0){
+        printf("error\n");
+    }
 
+    struct ifaddrs *ifa;
+    for(ifa=ifaddr; ifa != NULL; ifa=ifa->ifa_next) {
+        if (!strcmp(ifa->ifa_name, dev)) {
+            if (ifa->ifa_addr != NULL) {
+                if (ifa->ifa_addr->sa_family == AF_INET) {
+                    memcpy(&local_ip,&((struct sockaddr_in*)ifa->ifa_addr)->sin_addr,sizeof(local_ip));
+                    goto found;
+                }
+            }
+        }
+    }
+
+    printf("error: can't find ip of %s\n",dev);
+    freeifaddrs(ifaddr);
+    exit(-1);
+found:
+    freeifaddrs(ifaddr);
+
+}
 /*
  * ===  FUNCTION  ======================================================================
  *         Name:  show_local_info
@@ -1092,7 +1105,6 @@ void show_local_info ()
                         local_mac[0],local_mac[1],local_mac[2],
                         local_mac[3],local_mac[4],local_mac[5]);
     printf("IP:         %s\n", inet_ntop(AF_INET, &local_ip, buf, 32));
-    printf("MASK:       %s\n", inet_ntop(AF_INET, &local_mask, buf, 32));
     printf("ISP Type:   %s\n", isp_type_buf);
     printf("Auto Reconnect: %s\n", is_auto_buf);
     if ( isp_type == 'D' )
@@ -1125,7 +1137,6 @@ void init_arguments(int *argc, char ***argv)
         {"username",    required_argument,  0,                     'u'},
         {"password",    required_argument,  0,                     'p'},
         {"isp",         required_argument,  0,                     'i'},
-        {"ip",          required_argument,  0,                       4},
         {"mask",        required_argument,  0,                       5},
         {"showinfo",    no_argument,        0,                     's'},
         {0, 0, 0, 0}
@@ -1149,9 +1160,6 @@ void init_arguments(int *argc, char ***argv)
                 dev = optarg;
                 break;
             case 3:     //was abandoned
-                break;
-            case 4:
-                user_ip = optarg;
                 break;
             case 5:
                 user_mask = optarg;

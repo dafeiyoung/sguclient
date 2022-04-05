@@ -26,7 +26,7 @@ int  dstatus;
 char dstatusMsg[256];
 
 static int  sock;
-static struct sockaddr_in clientaddr;
+
 static struct sockaddr_in drcomaddr;
 
 
@@ -617,15 +617,17 @@ uint32 GetU40_3Sum(uint8 *buf){
 // init socket
 void init_env_d()
 {
-	memset(&clientaddr, 0, sizeof(clientaddr));
-	clientaddr.sin_family = AF_INET;
-	clientaddr.sin_port = htons(clientPort);
-	clientaddr.sin_addr = my_ip.sin_addr;
+    struct sockaddr_in local;
+	memset(&local, 0, sizeof(local));
+    local.sin_family = AF_INET;
+    local.sin_port = htons(clientPort);
+    local.sin_addr.s_addr = local_ip;
+
 
 	memset(&drcomaddr, 0, sizeof(drcomaddr));
 	drcomaddr.sin_family = AF_INET;
 	drcomaddr.sin_port = htons(DR_PORT);
-	inet_pton(AF_INET, DR_SERVER_IP, &drcomaddr.sin_addr);
+    drcomaddr.sin_addr.s_addr = inet_addr(DR_SERVER_IP);
 
 	sock = socket(AF_INET, SOCK_DGRAM, 0);
 	if( -1 == sock)
@@ -634,7 +636,7 @@ void init_env_d()
 		exit(-1);
 	}
 
-	if( 0 != bind(sock, (struct sockaddr *) &clientaddr, sizeof(clientaddr)))
+	if( 0 != bind(sock, (struct sockaddr *) &local, sizeof(local)))
 	{
 		perror("Bind drcom sock failed");
 		exit(-1);
