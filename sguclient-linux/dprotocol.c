@@ -319,9 +319,7 @@ int SendU244Login()
    // memset(revData, 0, RECV_BUF_LEN);
     int revLen = udp_send_and_rev(pkt_data, pkt_data_len, revData);
 
-    #if DRCOM_DEBUG_ON > 0
-    PackDump(revData, revLen,"U244R");
-    #endif
+
     /*数据包U244的响应
     * +------+-------+----+--------+------+----------+
     * | 标头  | 计数器 |长度|  类型  |用户名长| 加密内容长 |
@@ -567,7 +565,8 @@ int SendU38HeartBeat(){
    memcpy(pkt_data+data_index,DrInfo.ServerOffsetId,2);
    data_index+=2;
 
-   memcpy(pkt_data + data_index, &my_ip.sin_addr, 4);
+   //memcpy(pkt_data + data_index, &my_ip.sin_addr, 4);
+   memcpy(pkt_data + data_index, DrInfo.myip, 4);
    data_index += 4;
 
    pkt_data[data_index++]=0x01;
@@ -575,7 +574,7 @@ int SendU38HeartBeat(){
    data_index+=1;
 
    pkt_data[data_index++]=0x00;
-   pkt_data[data_index++]=0x00;//对包码,用于分辩同一组包
+   pkt_data[data_index]=0x00;//对包码,用于分辩同一组包
 
 #if DRCOM_DEBUG_ON > 0
     PackDump(pkt_data,pkt_data_len,"U38");
@@ -709,6 +708,8 @@ int udp_send_and_rev(uint8 *send_buf, int send_len, uint8 *recv_buf)
 void U8ResponseParser(){
     memcpy(DrInfo.MyDllVer,revData+28,4);
     memcpy(DrInfo.ChallengeTimer,revData+8,4);
+    memcpy(DrInfo.myip,revData+12,4);
+    printf("0x%.2x 0x%.2x 0x%.2x 0x%.2x \n",*(revData+12),*(revData+13),*(revData+14),*(revData+15));
 }
 /*
  * ===  FUNCTION  ======================================================================
@@ -720,6 +721,9 @@ void U8ResponseParser(){
  */
 void U244ResponseParser(){
     DecodeU244Response(revData);
+#if DRCOM_DEBUG_ON > 0
+    PackDump(revData, 42,"U244R decoded");
+#endif
     uint8 *pBuf = &revData[revData[2] - revData[6]];//指向解密后的加密载荷的起始处
     memcpy(DrInfo.ServerOffsetId,pBuf+8,2);
     memcpy(DrInfo.ServerClientBufSerno,pBuf+15,1);

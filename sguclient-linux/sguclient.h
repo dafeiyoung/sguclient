@@ -105,7 +105,7 @@ void    action_by_eap_type(enum EAPType pType,
 void    send_eap_packet(enum EAPType send_type);
 void    init_frames();
 void    init_info();
-void    init_device();
+void    get_local_mac();
 void    init_arguments(int *argc, char ***argv);
 
 void    fill_password_md5(uint8_t attach_key[], uint8_t eap_id);

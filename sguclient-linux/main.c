@@ -47,7 +47,7 @@ char my_mac[ETH_ALEN];
 static void signal_interrupted (int signo);
 static void flock_reg();
 
-extern pcap_t      *handle;
+extern pcap_t      *pcapHandle;
 extern int          exit_flag;
 
 int                 hLockFile;           /* 锁文件的描述字 */
@@ -174,7 +174,7 @@ static void signal_interrupted(int signo)
 {
     fprintf(stdout,"\n&&Info: USER Interrupted. \n");
     send_eap_packet(EAPOL_LOGOFF);
-    pcap_breakloop (handle);
+    pcap_breakloop (pcapHandle);
 }
 
 /*
@@ -205,7 +205,7 @@ int main(int argc, char **argv)
     init_info();
 
     //初始化设备，打开网卡，获得Mac、IP等信息
-    init_device();
+    get_local_mac();
 
     //初始化发送帧的缓冲区
     init_frames ();
@@ -223,9 +223,9 @@ int main(int argc, char **argv)
 
     //进入回呼循环。以后的动作由回呼函数get_packet驱动，
     //直到pcap_break_loop执行，退出程序。
-        pcap_loop (handle, -2, get_packet, NULL);   /* main loop */
+        pcap_loop (pcapHandle, -2, get_packet, NULL);   /* main loop */
         //todo：这玩意为什么不会和drprotocol的recvfrom冲突
-    pcap_close (handle);
+    pcap_close (pcapHandle);
     return 0;
 }
 

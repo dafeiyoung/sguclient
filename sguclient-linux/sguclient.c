@@ -29,7 +29,7 @@ static int bsd_get_mac(const char ifname[], uint8_t eth_addr[]);
  *  程序的主控制变量
  *-----------------------------------------------------------------------------*/
 char        errbuf[PCAP_ERRBUF_SIZE];  /* error buffer */
-pcap_t      *handle;			   /* packet capture handle */
+pcap_t      *pcapHandle;	//todo:这个名字起得太差了		   /* packet capture pcapHandle */
 uint8_t      muticast_mac[] =            /* 电信802.1x的认证服务器多播地址 */
                         {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
                         //电信有些苑亦可用01-d0-f8-00-00-03
@@ -39,19 +39,18 @@ uint8_t      muticast_mac_YD[] =         /* 移动802.1x的认证服务器多播
                         {0x01, 0x80, 0xc2, 0x00, 0x00, 0x03};
                         //注意：移动多播地址若改为0xff广播，会增强稳定性，
                             //但紫竹苑将完全无法使用(交换机不识别，收不到回应)
-
+//上面那两个是不是做成局部变量好一点
 
 /* #####   GLOBLE VAR DEFINITIONS   ###################
  *-----------------------------------------------------------------------------
  *  用户信息的赋值变量，由init_argument函数初始化
  *-----------------------------------------------------------------------------*/
-int          dhcp_on = 0;               /* DHCP 模式标记 */
 int          background = 0;            /* 后台运行标记  */
 char         isp_type='D';              /* 运营商类型，默认是电信（西区）  D电信 Y移动  */
 char         *dev = NULL;               /* 连接的设备名 */
 char         *username = NULL;
 char         *password = NULL;
-char         *user_gateway = NULL;      /* 由用户设定的四个报文参数 */
+
 char         *user_ip = NULL;
 char         *user_mask = NULL;
 int           exit_flag = 0;
@@ -68,7 +67,7 @@ size_t         username_length;
 size_t         password_length;
 uint32_t       local_ip;			       /* 网卡IP，网络序，下同 */
 uint32_t       local_mask;			       /* subnet mask */
-uint32_t       local_gateway = -1;
+
 uint8_t        local_mac[ETHER_ADDR_LEN];  /* MAC地址 */
 
 
@@ -126,7 +125,7 @@ void printNotification(const struct eap_header *eap_header)
 unsigned int generateRandomPort()
 {
     unsigned int random;
-    srand((unsigned int)time(0));
+    srand((unsigned int)time(0));//todo:这个执行一次就够了
     random = 10000 + rand() % 55535;
     return random;
 }
@@ -399,7 +398,7 @@ void action_by_eap_type(enum EAPType pType,
             else
             {
                 fprintf(stdout, "&&Info: Authentication Failed!\n");
-                pcap_breakloop (handle);
+                pcap_breakloop (pcapHandle);
             }
             break;
 
@@ -470,7 +469,7 @@ else if(isp_type=='Y')               //移动部分
             } else
             {
                 fprintf(stdout, "&&Info: Authentication Failed!\n");
-                pcap_breakloop (handle);
+                pcap_breakloop (pcapHandle);
             }
             break;
 
@@ -539,15 +538,17 @@ void send_eap_packet(enum EAPType send_type)
                           for (i = 0; i < 2; i++)  //模仿官方客户端，认证前发送2次logoff包
                           {
                             fprintf(stdout, ">>Protocol: <CTCC>SEND EAPOL-Logoff Twice for CTCC 802.1x Protocol.\n");
-                            if ( pcap_sendpacket(handle, eapol_logoff, sizeof(eapol_logoff)) != 0 )
+                            if (pcap_sendpacket(pcapHandle, eapol_logoff, sizeof(eapol_logoff)) != 0 )
+                            //todo:这个封装一下,让其内部可以完成基本的retry
                             {
-                                fprintf(stderr,"&&IMPORTANT: Error Sending the packet: %s\n", pcap_geterr(handle));
+                                fprintf(stderr,"&&IMPORTANT: Error Sending the packet: %s\n", pcap_geterr(pcapHandle));
                                 return;
                             }
                           }
 
                           alarm(WAIT_START_TIME_OUT);  //等待回应
                           fprintf(stdout, ">>Protocol: <CTCC>SEND EAPOL-Start\n");
+                        sleep(2);
                           break;
 
                     case 'Y':
@@ -700,9 +701,9 @@ void send_eap_packet(enum EAPType send_type)
             return;
     }
 
-    if (pcap_sendpacket(handle, frame_data, frame_length) != 0)
+    if (pcap_sendpacket(pcapHandle, frame_data, frame_length) != 0)
     {
-        fprintf(stderr,"&&IMPORTANT: Error Sending the packet: %s\n", pcap_geterr(handle));
+        fprintf(stderr,"&&IMPORTANT: Error Sending the packet: %s\n", pcap_geterr(pcapHandle));
         return;
     }
 }
@@ -759,7 +760,8 @@ void init_frames()
     memcpy ( eapol_header + data_index, local_mac, 6 );    /* src addr. local mac */
     data_index += 6;
     memcpy ( eapol_header + data_index, &eapol_t, 2 );    /*  frame type, 0x888e*/
-
+//todo header的结构体已经存在于ethernet.h中(struct ether_header) 使用那个(51@eap_dealer)
+//header 初始化一次后就不会变动了
     /**** EAPol START ****/
     u_char start_data[] = { 0x01, 0x01, 0x00, 0x00 };
     memset (eapol_start, 0x00, 96 );
@@ -767,7 +769,7 @@ void init_frames()
     memcpy (eapol_start + 14, start_data, 4);
     memset (eapol_start + 42, 0x01, 1 );
     memset (eapol_start + 43, 0x01, 1 );
-
+//这些东西没有必要生存期那么长
     /****EAPol LOGOFF ****/
     u_char logoff_data[4] = {0x01, 0x02, 0x00, 0x00};
     memset (eapol_logoff, 0x00, 96);
@@ -969,76 +971,73 @@ void init_info()
     else
         local_mask = 0;
 
-    if (user_gateway)
-        local_gateway = inet_addr (user_gateway);
-    else
-        local_gateway = 0;
 
 
-    if (local_ip == -1 || local_mask == -1 || local_gateway == -1 ) {
-        fprintf (stderr,"ERROR: One of specified IP, MASK or Gateway \n"
+    if (local_ip == -1 || local_mask == -1  ) {
+        fprintf (stderr,"ERROR: One of specified IP or MASK  \n"
                         "in the arguments format error.\n");
         exit(EXIT_FAILURE);
     }
 }
-
-
 /*
  * ===  FUNCTION  ======================================================================
- *         Name:  init_device
- *  Description:  初始化设备。主要是找到打开网卡、获取网卡MAC、IP，
- *  同时设置pcap的初始化工作句柄。
+ *         Name:  init_pcap
+ *  Description:  初始化Pcap过滤器
+ *
  * =====================================================================================
  */
-void init_device()
-{
+void init_pcap(){
     struct          bpf_program fp;			/* compiled filter program (expression) */
     char            filter_exp[51];         /* filter expression [3] */
-    pcap_if_t       *alldevs;
-    pcap_addr_t     *addrs;
 
-	/* Retrieve the device list */
-	if(pcap_findalldevs(&alldevs, errbuf) == -1)
-	{
-		fprintf(stderr,"Error in pcap_findalldevs: %s\n", errbuf);
-		exit(1);
-	}
-
-    /* 使用第一块设备 */
-    if(dev == NULL) {
-        dev = alldevs->name;
+    if (dev == NULL) {
+        fprintf(stderr, "Couldn't find default device: %s\n",
+                errbuf);
+        exit(EXIT_FAILURE);
     }
-    strcpy (dev_if_name, dev);
+    /* open capture device */
+    pcapHandle = pcap_open_live(dev, SNAP_LEN, 1, 1000, errbuf);
 
-	if (dev == NULL) {
-		fprintf(stderr, "Couldn't find default device: %s\n",
-			errbuf);
-		exit(EXIT_FAILURE);
+    if (pcapHandle == NULL) {
+        fprintf(stderr, "Couldn't open device %s: %s Please ensure you have the access to the network devices. \n", dev, errbuf);
+        exit(EXIT_FAILURE);
     }
-
-	/* open capture device */
-	handle = pcap_open_live(dev, SNAP_LEN, 1, 1000, errbuf);
-
-	if (handle == NULL) {
-		fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
-		exit(EXIT_FAILURE);
-	}
-
-	/* make sure we're capturing on an Ethernet device [2] */
-	if (pcap_datalink(handle) != DLT_EN10MB) {
-		fprintf(stderr, "%s is not an Ethernet\n", dev);
-		exit(EXIT_FAILURE);
-	}
-
-    /* Get IP ADDR and MASK */
-    for (addrs = alldevs->addresses; addrs; addrs=addrs->next) {
-        if (addrs->addr->sa_family == AF_INET) {
-            local_ip = ((struct sockaddr_in *)addrs->addr)->sin_addr.s_addr;
-            local_mask = ((struct sockaddr_in *)addrs->netmask)->sin_addr.s_addr;
-        }
+    /* make sure we're capturing on an Ethernet device [2] */
+    if (pcap_datalink(pcapHandle) != DLT_EN10MB) {
+        fprintf(stderr, "%s is not an Ethernet device\n", dev);
+        exit(EXIT_FAILURE);
     }
-#ifdef __linux
-    /* get device basic infomation */
+    /* construct the filter string */
+    sprintf(filter_exp, "ether dst %02x:%02x:%02x:%02x:%02x:%02x"
+                        " and ether proto 0x888e",
+            local_mac[0], local_mac[1],
+            local_mac[2], local_mac[3],
+            local_mac[4], local_mac[5]);
+
+    /* compile the filter expression */
+    if (pcap_compile(pcapHandle, &fp, filter_exp, 0, 0) == -1) {
+        fprintf(stderr, "Couldn't parse filter %s: %s\n",
+                filter_exp, pcap_geterr(pcapHandle));
+        exit(EXIT_FAILURE);
+    }
+    /* apply the compiled filter */
+    if (pcap_setfilter(pcapHandle, &fp) == -1) {
+        fprintf(stderr, "Couldn't install filter %s: %s\n",
+                filter_exp, pcap_geterr(pcapHandle));
+        exit(EXIT_FAILURE);
+    }
+    pcap_freecode(&fp);
+}
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name:  get_local_mac
+ *  Description:  根据网卡名获得本机MAC地址
+ *
+ * =====================================================================================
+ */
+void get_local_mac()
+{
+
     struct ifreq ifr;
     int sock;
     if((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
@@ -1046,44 +1045,15 @@ void init_device()
         perror("socket");
         exit(EXIT_FAILURE);
     }
-    strcpy(ifr.ifr_name, dev);
+    strncpy(ifr.ifr_name, dev,sizeof (ifr.ifr_name));
+    ifr.ifr_name[sizeof(ifr.ifr_name)-1] = '\0';
 
-    //获得网卡Mac
     if(ioctl(sock, SIOCGIFHWADDR, &ifr) < 0)
     {
         perror("ioctl");
         exit(EXIT_FAILURE);
     }
     memcpy(local_mac, ifr.ifr_hwaddr.sa_data, ETHER_ADDR_LEN);
-#else
-    if (bsd_get_mac (dev, local_mac) != 0) {
-		fprintf(stderr, "FATIL: Fail getting BSD/MACOS Mac Address.\n");
-		exit(EXIT_FAILURE);
-    }
-#endif
-
-    /* construct the filter string */
-    sprintf(filter_exp, "ether dst %02x:%02x:%02x:%02x:%02x:%02x"
-                        " and ether proto 0x888e",
-                        local_mac[0], local_mac[1],
-                        local_mac[2], local_mac[3],
-                        local_mac[4], local_mac[5]);
-
-	/* compile the filter expression */
-	if (pcap_compile(handle, &fp, filter_exp, 0, 0) == -1) {
-		fprintf(stderr, "Couldn't parse filter %s: %s\n",
-		    filter_exp, pcap_geterr(handle));
-		exit(EXIT_FAILURE);
-	}
-
-	/* apply the compiled filter */
-	if (pcap_setfilter(handle, &fp) == -1) {
-		fprintf(stderr, "Couldn't install filter %s: %s\n",
-		    filter_exp, pcap_geterr(handle));
-		exit(EXIT_FAILURE);
-	}
-    pcap_freecode(&fp);
-    pcap_freealldevs(alldevs);
 }
 
 /*
@@ -1123,7 +1093,6 @@ void show_local_info ()
                         local_mac[3],local_mac[4],local_mac[5]);
     printf("IP:         %s\n", inet_ntop(AF_INET, &local_ip, buf, 32));
     printf("MASK:       %s\n", inet_ntop(AF_INET, &local_mask, buf, 32));
-    printf("Gateway:    %s\n", inet_ntop(AF_INET, &local_gateway, buf, 32));
     printf("ISP Type:   %s\n", isp_type_buf);
     printf("Auto Reconnect: %s\n", is_auto_buf);
     if ( isp_type == 'D' )
@@ -1158,7 +1127,6 @@ void init_arguments(int *argc, char ***argv)
         {"isp",         required_argument,  0,                     'i'},
         {"ip",          required_argument,  0,                       4},
         {"mask",        required_argument,  0,                       5},
-        {"gateway",     required_argument,  0,                     'g'},
         {"showinfo",    no_argument,        0,                     's'},
         {0, 0, 0, 0}
         };
@@ -1167,7 +1135,7 @@ void init_arguments(int *argc, char ***argv)
     while (1) {
         /* getopt_long stores the option index here. */
         int option_index = 0;
-        c = getopt_long ((*argc), (*argv), "hru:kp:i:g:s",
+        c = getopt_long ((*argc), (*argv), "hru:kp:i:s",
                         long_options, &option_index);
         if (c == -1)
             break;
@@ -1193,9 +1161,6 @@ void init_arguments(int *argc, char ***argv)
                 break;
             case 'p':
                 password = optarg;
-                break;
-            case 'g':
-                user_gateway = optarg;
                 break;
             case 's':
                 show_usage();

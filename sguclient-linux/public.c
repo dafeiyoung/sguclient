@@ -103,7 +103,7 @@ inline uint32_t big2little_32(uint32_t A)
 }
 
 // create socket and get src ether address
-int crt_sock(struct ifreq * ifr)
+int crt_sock(struct ifreq * ifr)//这鬼东西绝对tmd有问题
 {
     int s;
     int err;
@@ -124,9 +124,9 @@ int crt_sock(struct ifreq * ifr)
         close(s);
         return -1;
     }
-    memcpy(&my_ip, &(ifr->ifr_addr), sizeof(my_ip));
+    memcpy(&my_ip, &(ifr->ifr_addr), sizeof(my_ip)); //todo:my ip和local ip和参数传进来的ip的关系?
 
-    /* get hardware address */
+        /* get hardware address */
     err = ioctl(s, SIOCGIFHWADDR, ifr);
     if( err < 0)
     {
@@ -156,7 +156,7 @@ int crt_sock(struct ifreq * ifr)
         return -1;
     }
 
-    ifr->ifr_ifru.ifru_flags |= IFF_PROMISC;
+    ifr->ifr_ifru.ifru_flags |= IFF_PROMISC;//drclient没有做这件事 这是必须的吗?
     err = ioctl(s, SIOCSIFFLAGS, ifr);
     if( err < 0)
     {
@@ -203,7 +203,7 @@ int create_ethhdr_sock(struct ethhdr * eth_header)
     //printf("Drcom host ip: %s\n", inet_ntoa(my_ip.sin_addr));
     memcpy(EAP_TYPE_ID_SALT + sizeof(EAP_TYPE_ID_SALT) - 4, &(my_ip.sin_addr), 4);
     memcpy(EAP_TYPE_MD5_SALT + sizeof(EAP_TYPE_ID_SALT) - 4, &(my_ip.sin_addr), 4);
-
+//todo:楼上那俩啥玩意,删了
     free(myifr);
     return mysock;
 }
