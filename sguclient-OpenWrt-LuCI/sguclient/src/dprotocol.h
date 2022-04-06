@@ -45,9 +45,9 @@
 #define RETRY_TIME 15
 
 
-uint8 drcom_pkt_counter;
-int  dstatus;
-char dstatusMsg[256];
+extern uint8 drcom_pkt_counter;
+extern int  dstatus;
+extern char dstatusMsg[256];
 
 
 void init_dial_env(void);
@@ -61,6 +61,7 @@ typedef struct {//注意端序
     uint8 ServerClientBufSerno[1];  //具体含义未知。推测与服务端内部实现有关
     uint8 MyDllVer[4];              //LE，与防宽带共享模块有关。推测服务端没有开启此功能，但是这个版本号需要保存
     uint8 U8Counter;                //U8的计数器
+    uint8 myip[4];                  //测试,出于完全不可知的原因,服务端的U8有的时候会给客户端ip字段填一个d段不同的ip回来 //前面那个可能是之前版本网路接口代码有问题,现在应该没有这个问题了
 }dr_info;
 
 #endif

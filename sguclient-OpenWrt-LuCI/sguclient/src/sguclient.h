@@ -33,6 +33,7 @@
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <net/ethernet.h>
+#include <ifaddrs.h>
 
 
 #ifndef __linux
@@ -102,10 +103,12 @@ void    action_by_eap_type(enum EAPType pType,
                         const struct eap_header *header,
                         const struct pcap_pkthdr *packetinfo,
                         const uint8_t *packet);
-void    send_eap_packet(enum EAPType send_type);
+
 void    init_frames();
+void    init_pcap();
 void    init_info();
-void    init_device();
+void    get_local_mac();
+void    get_local_ip();
 void    init_arguments(int *argc, char ***argv);
 
 void    fill_password_md5(uint8_t attach_key[], uint8_t eap_id);

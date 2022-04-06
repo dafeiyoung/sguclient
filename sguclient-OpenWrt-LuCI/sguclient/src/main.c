@@ -25,14 +25,28 @@
 #include "sguclient.h"
 #include "public.h"
 #include "dprotocol.h"
+int xstatus;  //802.1x状态
+struct sockaddr_ll sa_ll;
+struct ethhdr  eth_header;
+char nodifyMsg[256];
 
+
+char user_id[32];
+char passwd[32];
+char interface_name[32];
+
+
+unsigned int clientPort;
+
+struct sockaddr_in my_ip;
+char my_mac[ETH_ALEN];
 #define LOCKFILE "/var/run/sguclient.pid"        /* 锁文件 */
 #define LOCKMODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 
 static void signal_interrupted (int signo);
 static void flock_reg();
 
-extern pcap_t      *handle;
+extern pcap_t      *pcapHandle;
 extern int          exit_flag;
 
 int                 hLockFile;           /* 锁文件的描述字 */
@@ -159,7 +173,7 @@ static void signal_interrupted(int signo)
 {
     fprintf(stdout,"\n&&Info: USER Interrupted. \n");
     send_eap_packet(EAPOL_LOGOFF);
-    pcap_breakloop (handle);
+    pcap_breakloop (pcapHandle);
 }
 
 /*
@@ -190,7 +204,11 @@ int main(int argc, char **argv)
     init_info();
 
     //初始化设备，打开网卡，获得Mac、IP等信息
-    init_device();
+    get_local_mac();
+    get_local_ip();
+
+    //初始化Pcap
+    init_pcap();
 
     //初始化发送帧的缓冲区
     init_frames ();
@@ -208,9 +226,8 @@ int main(int argc, char **argv)
 
     //进入回呼循环。以后的动作由回呼函数get_packet驱动，
     //直到pcap_break_loop执行，退出程序。
-        pcap_loop (handle, -2, get_packet, NULL);   /* main loop */
-        //todo：这玩意为什么不会和drprotocol的recvfrom冲突
-    pcap_close (handle);
+    pcap_loop (pcapHandle, -2, get_packet, NULL);   /* main loop */
+    pcap_close (pcapHandle);
     return 0;
 }
 
