@@ -27,6 +27,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <net/ethernet.h>
 #include <netpacket/packet.h>
 #include <pthread.h> 
 #include <net/if.h>
@@ -52,14 +53,12 @@ extern char nodifyMsg[256];
 extern char user_id[32];
 extern char passwd[32];
 extern char interface_name[32];
-extern char listen_ip[32];
-extern int listen_port;
 
 extern unsigned int clientPort;
 
-extern struct sockaddr_in my_ip;
 extern uint32_t   local_ip;
-extern char my_mac[ETH_ALEN];
+extern uint8_t     local_mac[ETHER_ADDR_LEN];
+
 
 
 void print_mac(char *src);
@@ -68,7 +67,6 @@ void print_hex_drcom(char *hex, int len);
 #endif
 int checkCPULittleEndian();
 uint32_t big2little_32(uint32_t A);
-int create_ethhdr_sock(struct ethhdr * eth_header);
-int crt_sock(struct ifreq * ifr);
+
 
 #endif

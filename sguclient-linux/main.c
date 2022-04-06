@@ -34,8 +34,7 @@ char nodifyMsg[256];
 char user_id[32];
 char passwd[32];
 char interface_name[32];
-char listen_ip[32];
-int listen_port;
+
 
 unsigned int clientPort;
 
