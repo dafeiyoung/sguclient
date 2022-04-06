@@ -27,6 +27,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <net/ethernet.h>
 #include <netpacket/packet.h>
 #include <pthread.h> 
 #include <net/if.h>
@@ -59,6 +60,7 @@ extern unsigned int clientPort;
 
 extern struct sockaddr_in my_ip;
 extern uint32_t   local_ip;
+extern uint8_t     local_mac[ETHER_ADDR_LEN];
 extern char my_mac[ETH_ALEN];
 
 

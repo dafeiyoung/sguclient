@@ -221,11 +221,11 @@ int SendU244Login()
     pkt_data[data_index++] = (strlen(user_id)&0xff);	//uid len  用户ID长度
 
     // 0x0006 mac
-    memcpy(pkt_data + data_index, my_mac, 6);
+    memcpy(pkt_data + data_index, local_mac, 6);
     data_index += 6;
 
     // 0x000C ip
-    memcpy(pkt_data + data_index, &my_ip.sin_addr, 4);
+    memcpy(pkt_data + data_index, &local_ip, 4);
     data_index += 4;
 
     // 0x0010 fix-options(4B)
@@ -653,21 +653,6 @@ void init_env_d()
  */
 void init_dial_env()
 {
-	/* linklayer broadcast address, used to connect the huawei's exchange */
-	//const char dev_dest[ETH_ALEN] = {0x01, 0x80, 0xc2, 0x00, 0x00, 0x03};
-	const char dev_dest[ETH_ALEN] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-
-
-	/* set struct sockaddr_ll for sendto function
-	 sa_ll: global value, in "xprotocol.h" */
-	sa_ll.sll_family = PF_PACKET;
-	sa_ll.sll_protocol = htons(ETH_P_ALL);
-	sa_ll.sll_ifindex = if_nametoindex(interface_name);
-	sa_ll.sll_hatype = 0;
-	sa_ll.sll_pkttype = PACKET_HOST | PACKET_BROADCAST  | PACKET_MULTICAST;
-	memcpy(sa_ll.sll_addr, dev_dest, ETH_ALEN);
-
-	sock =  create_ethhdr_sock(&eth_header); // eth_header,sock: global value
 
 }
 /*
