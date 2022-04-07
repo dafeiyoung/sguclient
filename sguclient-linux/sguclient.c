@@ -28,17 +28,15 @@ static int bsd_get_mac(const char ifname[], uint8_t eth_addr[]);
 /*-----------------------------------------------------------------------------
  *  程序的主控制变量
  *-----------------------------------------------------------------------------*/
-char        errbuf[PCAP_ERRBUF_SIZE];  /* error buffer */
-pcap_t      *pcapHandle;	//todo:这个名字起得太差了		   /* packet capture pcapHandle */
-uint8_t      muticast_mac[] =            /* 电信802.1x的认证服务器多播地址 */
-                        {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-                        //电信有些苑亦可用01-d0-f8-00-00-03
-                        //注意电信不可用01-80-c2-00-00-03(交换机不识别，收不到回应)
 
-uint8_t      muticast_mac_YD[] =         /* 移动802.1x的认证服务器多播地址 */
-                        {0x01, 0x80, 0xc2, 0x00, 0x00, 0x03};
-                        //注意：移动多播地址若改为0xff广播，会增强稳定性，
-                            //但紫竹苑将完全无法使用(交换机不识别，收不到回应)
+pcap_t      *pcapHandle;		   /* packet capture pcapHandle */
+#define      MUTICAST_MAC    0xff, 0xff, 0xff, 0xff, 0xff, 0xff /* 电信802.1x的认证服务器多播地址 */
+//电信有些苑亦可用01-d0-f8-00-00-03
+//注意电信不可用01-80-c2-00-00-03(交换机不识别，收不到回应)
+#define      MUTICAST_MAC_YD 0x01, 0x80, 0xc2, 0x00, 0x00, 0x03 /* 移动802.1x的认证服务器多播地址 */
+//注意：移动多播地址若改为0xff广播，会增强稳定性，
+//但紫竹苑将完全无法使用(交换机不识别，收不到回应)
+
 //上面那两个是不是做成局部变量好一点
 
 /* #####   GLOBLE VAR DEFINITIONS   ###################
@@ -51,8 +49,6 @@ char         *dev = NULL;               /* 连接的设备名 */
 char         *username = NULL;
 char         *password = NULL;
 
-char         *user_ip = NULL;
-char         *user_mask = NULL;
 int           exit_flag = 0;
 int           auto_rec = 0;             /* 断线重拨 */
 int           timeout_alarm_1x = 1;
@@ -735,7 +731,10 @@ void get_packet(uint8_t *args, const struct pcap_pkthdr *header,
  */
 void init_frames()
 {
-  if ( isp_type == 'D' )   //电信部分
+    uint8_t      muticast_mac[] = {MUTICAST_MAC};
+    uint8_t      muticast_mac_YD[] ={MUTICAST_MAC_YD};
+
+    if ( isp_type == 'D' )   //电信部分
   {
     int data_index;
 
@@ -970,6 +969,7 @@ void init_info()
 void init_pcap(){
     struct          bpf_program fp;			/* compiled filter program (expression) */
     char            filter_exp[51];         /* filter expression [3] */
+    char        errbuf[PCAP_ERRBUF_SIZE];  /* error buffer */
 
     if (dev == NULL) {
         fprintf(stderr, "Couldn't find default device: %s\n",
@@ -1137,7 +1137,6 @@ void init_arguments(int *argc, char ***argv)
         {"username",    required_argument,  0,                     'u'},
         {"password",    required_argument,  0,                     'p'},
         {"isp",         required_argument,  0,                     'i'},
-        {"mask",        required_argument,  0,                       5},
         {"showinfo",    no_argument,        0,                     's'},
         {0, 0, 0, 0}
         };
@@ -1161,8 +1160,7 @@ void init_arguments(int *argc, char ***argv)
                 break;
             case 3:     //was abandoned
                 break;
-            case 5:
-                user_mask = optarg;
+            case 5:    //was abandoned
                 break;
             case 'u':
                 username = optarg;
