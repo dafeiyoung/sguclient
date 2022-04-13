@@ -21,7 +21,6 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include <linux/if_ether.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -31,6 +30,7 @@
 #include <netpacket/packet.h>
 #include <pthread.h> 
 #include <net/if.h>
+#include <linux/if_ether.h>
 
 #define DOFFLINE         0
 #define DONLINE          1
