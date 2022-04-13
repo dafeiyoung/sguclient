@@ -7,13 +7,13 @@ run_sguclient()
 	config_get_bool enable $1 enable
 
 	if [ $enable ]; then
+		local logtofile
 		local autoreconnect
 		local username
 		local password
 		local isptype
 		local ifname
-		local wanip
-    local cmd
+    		local cmd
 
 		config_get_bool autoreconnect $1 autoreconnect
 		config_get_bool noheartbeat $1 noheartbeat
@@ -21,12 +21,15 @@ run_sguclient()
 		config_get password $1 password
 		config_get isptype $1 isptype
 		config_get ifname $1 ifname
-		config_get wanip $1 wanip
+		config_get_bool logtofile $1 logtofile
 
     if [ $autoreconnect ];then cmd=$cmd" --auto";fi
     if [ $noheartbeat ];  then cmd=$cmd" --noheartbeat";fi
-
-		sguclient -u $username -p $password -i $isptype --device $ifname --ip $wanip  $cmd >/tmp/sguclient.log 2>&1 &
+    if [ $logtofile ];  then
+		sguclient -u $username -p $password -i $isptype --device $ifname   $cmd >/tmp/sguclient.log 2>&1 &
+    		else 
+    		sguclient -u $username -p $password -i $isptype --device $ifname   $cmd  2>&1 &
+		fi	
 		echo "SGUClient has started."
 
 	fi

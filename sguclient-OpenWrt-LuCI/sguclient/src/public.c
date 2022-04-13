@@ -17,34 +17,12 @@
  */
 
 #include "public.h"
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
+int needToSendDrComStart;
+char user_id[32];
+char passwd[32];
 
-char EAP_TYPE_ID_SALT[9]  = {0x00, 0x44, 0x61, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff};
-char EAP_TYPE_MD5_SALT[9] = {0x00, 0x44, 0x61, 0x2a, 0x00, 0xff, 0xff, 0xff, 0xff};
+unsigned int clientPort;
 
-/*
- * ===  FUNCTION  ======================================================================
- *         Name:  print_mac
- *  Description:  以一定格式打印MAC地址
- *        Input:  *src: 待打印的字符串的指针
- *       Output:  无
- * =====================================================================================
- */
-void print_mac(char *src)
-{
-    char mac[32] = "";
-    sprintf(mac, "%02x%02x%02x%02x%02x%02x",
-                        (unsigned char)src[0],
-                        (unsigned char)src[1],
-                        (unsigned char)src[2],
-                        (unsigned char)src[3],
-                        (unsigned char)src[4],
-                        (unsigned char)src[5]);
-
-    printf("%s\n", mac);
-}
 
 /*
  * ===  FUNCTION  ======================================================================
@@ -101,5 +79,3 @@ inline uint32_t big2little_32(uint32_t A)
         (((uint32_t)(A) & 0x0000ff00) << 8) |
         (((uint32_t)(A) & 0x000000ff) << 24));
 }
-
-

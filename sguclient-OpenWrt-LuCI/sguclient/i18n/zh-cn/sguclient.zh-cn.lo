@@ -1,62 +1,77 @@
 msgid "ShaoGuan University 3rd Party Network Authentication Client.<br/><b><font color=\"red\">QQ Group: 638138948</font></b>"
 msgstr "韶关学院第三方校园网拨号器<br/><b><font color=\"red\">QQ群: 638138948</font></b>"
 
-msgid  "Enable"
+msgid "Enable"
 msgstr "启用"
 
-msgid  "Auto Reconnect"
+msgid "Auto Reconnect"
 msgstr "自动重连"
 
-msgid  "No 1x Heart Beat"
+msgid "No 1x Heart Beat"
 msgstr "不需要802.1x心跳"
 
-msgid  "1x Username"
+msgid "1x Username"
 msgstr "内网(校园网)账号"
 
-msgid  "1x Password"
+msgid "1x Password"
 msgstr "内网(校园网)密码"
 
-msgid  "ISP Type"
+msgid "ISP Type"
 msgstr "网络运营商类型"
 
-msgid  "AuthInterface"
+msgid "AuthInterface"
 msgstr "认证网卡"
 
-msgid  "Wan IP Address"
+msgid "Wan IP Address"
 msgstr "认证网卡的IP地址"
 
-msgid  "Main control of SGUClient"
+msgid "Main control of SGUClient"
 msgstr "SGUClient总开关"
 
-msgid  "Reconnect if client went off-line"
+msgid "Reconnect if client went off-line(Generally NOT checked)"
 msgstr "客户端离线时自动重连"
 
-msgid  "No 802.1x heart beat and cancel alarm(Generally NOT checked)"
+msgid "No 802.1x heart beat and cancel alarm(Generally NOT checked)"
 msgstr "不需802.1x心跳并关闭超时闹钟(一般不勾选,仅小部分移动网络需要)"
 
-msgid  "Fill in your 802.1x username"
+msgid "Fill in your 802.1x username"
 msgstr "请填入你的内网账号"
 
-msgid  "Fill in your 802.1x password"
+msgid "Fill in your 802.1x password"
 msgstr "请填入你的内网密码"
 
-msgid  "Chose your ISP Type"
+msgid "Chose your ISP Type"
 msgstr "选择你的实际网络运营商类型"
 
-msgid  "CTCC(DX)"
+msgid "CTCC(DX)"
 msgstr "电信"
 
-msgid  "CMCC(YD)"
+msgid "CMCC(YD)"
 msgstr "移动"
 
-msgid  "Get Ip Address from interface"
+msgid "Get Ip Address from interface"
 msgstr "根据所选网卡自动读取IPv4地址"
 
-msgid  "Chose your authentication interface"
+msgid "Click Refresh to get"
+msgstr "单击刷新获取"
+
+msgid "Chose your authentication interface"
 msgstr "请选择你的内网认证网卡"
 
-msgid  "Authentication interface IPv4 address(must be the same as which filled in 'Network-Interfaces')"
-msgstr "请确认上述认证网卡的IPv4地址和‘网络-接口’里填写的完全一样"
+msgid "Authentication interface IPv4 address(view only)"
+msgstr "上述认证网卡的实际IPv4地址(仅供查看)"
 
-msgid  "Log"
+msgid "Log"
 msgstr "日志"
+
+msgid "Save output log to file"
+msgstr "保存输出到日志文件"
+
+msgid "Notice: ONLY enable this during testing. This file can easily get bigger than 5M"
+msgstr "注意:此选项只应在测试期间开启.长期运行时该日志文体积很快会超过5M"
+
+msgid "Notice for log"
+msgstr "注意"
+
+msgid "Log will only be saved if 'Save output log to file' is enabled."
+msgstr "只有在勾选'保存输出日志到文件'时 才可在此处查看程序日志"

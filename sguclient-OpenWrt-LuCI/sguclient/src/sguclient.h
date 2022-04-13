@@ -36,22 +36,15 @@
 #include <ifaddrs.h>
 
 
-#ifndef __linux
-//------bsd/apple mac
-    #include <net/if_var.h>
-    #include <net/if_dl.h>
-    #include <net/if_types.h>
-#endif
 
 #include <getopt.h>
 #include <unistd.h>
-//#include <iconv.h>
 #include "md5.h"
 #include "public.h"
 #include "dprotocol.h"
 
 /* SGUClient Version */
-#define SGU_VER "release 0.20"
+#define SGU_VER "beta 0.30"
 
 /* default snap length (maximum bytes per packet to capture) */
 #define SNAP_LEN 1518
@@ -95,7 +88,7 @@ enum EAPType {
     EAP_REQUEST_MD5_KEEP_ALIVE=250
 };
 
-void    YD_identity_transform();
+
 void    send_eap_packet(enum EAPType send_type);
 void    show_usage();
 char*   get_md5_digest(const char* str, size_t len);
@@ -103,10 +96,9 @@ void    action_by_eap_type(enum EAPType pType,
                         const struct eap_header *header,
                         const struct pcap_pkthdr *packetinfo,
                         const uint8_t *packet);
-
 void    init_frames();
-void    init_pcap();
 void    init_info();
+void    init_pcap();
 void    get_local_mac();
 void    get_local_ip();
 void    init_arguments(int *argc, char ***argv);

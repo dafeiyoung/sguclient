@@ -25,21 +25,7 @@
 #include "sguclient.h"
 #include "public.h"
 #include "dprotocol.h"
-int xstatus;  //802.1x状态
-struct sockaddr_ll sa_ll;
-struct ethhdr  eth_header;
-char nodifyMsg[256];
 
-
-char user_id[32];
-char passwd[32];
-char interface_name[32];
-
-
-unsigned int clientPort;
-
-struct sockaddr_in my_ip;
-char my_mac[ETH_ALEN];
 #define LOCKFILE "/var/run/sguclient.pid"        /* 锁文件 */
 #define LOCKMODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 
@@ -210,7 +196,7 @@ int main(int argc, char **argv)
     //初始化Pcap
     init_pcap();
 
-    //初始化发送帧的缓冲区
+    //初始化802.1x发送帧的缓冲区
     init_frames ();
 
     signal(SIGINT,signal_interrupted);
@@ -226,7 +212,7 @@ int main(int argc, char **argv)
 
     //进入回呼循环。以后的动作由回呼函数get_packet驱动，
     //直到pcap_break_loop执行，退出程序。
-    pcap_loop (pcapHandle, -2, get_packet, NULL);   /* main loop */
+    pcap_loop (pcapHandle, -2, get_packet, NULL);   /* main pcap loop */
     pcap_close (pcapHandle);
     return 0;
 }
