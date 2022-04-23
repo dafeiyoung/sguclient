@@ -78,14 +78,16 @@ SGUClient是很久很久之前弄的一个东西了，编写过程中借(chao)�
 <br>感谢以上作者的辛勤付出。侵删。
 <br>
 欢迎star，欢迎fork，欢迎pull request，但禁止任何个人或团体将SGUClient用于商业目的，由此造成的后果与法律责任均与开发者、公众号持有者以及QQ群友无关！
+
 ## Contributors
  - [dafeiyoung](https://github.com/dafeiyoung/)
     * 初版开发,测试,客服(?)
  - [FurryAcetylCoA](https://github.com/FurryAcetylCoA)
     * 适配新版电信心跳包
- - [IDeLoveYou]
+ - [IDeLoveYou](https://github.com/IDeLoveYou)
    *  重写了多线程处理
    *  软件测试
+
 ## 再说几句
 a. 历时很多很多年改来改去的一个东西，当年shit一样的代码风格，所以请勿在饭前饭后阅读源代码。
 <br>
