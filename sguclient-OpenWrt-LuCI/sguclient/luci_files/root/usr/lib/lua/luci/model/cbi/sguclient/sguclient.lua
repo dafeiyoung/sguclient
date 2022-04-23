@@ -19,8 +19,7 @@ s.addremove = false
 s.anonymous = true
 
 enable = s:option(Flag, "enable", translate("Enable"), translate("Main control of SGUClient"))
-enable = s:option(Flag, "autoreconnect", translate("Auto Reconnect"), translate("Reconnect if client went off-line(Generally NOT checked)"))
-enable = s:option(Flag, "logtofile", translate("Save output log to file"), translate("Notice: ONLY enable this during testing. This file can easily get bigger than 5M"))
+enable = s:option(Flag, "autoreconnect", translate("Auto Reconnect"), translate("You may want to disable this during debug"))
 enable = s:option(Flag, "noheartbeat", translate("No 1x Heart Beat"), translate("No 802.1x heart beat and cancel alarm(Generally NOT checked)"))
 
 name = s:option(Value, "username", translate("1x Username"), translate("Fill in your 802.1x username"))
@@ -48,7 +47,7 @@ end
 b = s:option(Button, "GetIpFromIf", translate("Get Ip Address from interface"))
 b.inputtitle = translate("Click Refresh to get")
 
-wanip = s:option(DummyValue, "wanip", translate("Wan IP Address"), translate("Authentication interface IPv4 address(view only)"))
+wanip = s:option(DummyValue, "wanip", translate("Wan IP Address"), translate("Authentication interface IPv4 address(view only)"))  --自从不允许输入IP后 这里就这样了
 
 
 function b.write(self, section, value)
@@ -75,8 +74,8 @@ end
 
 local apply = luci.http.formvalue("cbi.apply")
 if apply then
-    nixio.fs.remove("/tmp/sguclient.ifname")
-    io.popen("/etc/init.d/sguclient restart")
+    nixio.fs.remove("/tmp/sguclient.ifname")  --也许可以吧这个持久化一下,让每次打开设置页面都能显示ip?
+   -- io.popen("/etc/init.d/sguclient restart")
 end
 
 return m

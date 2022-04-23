@@ -28,8 +28,8 @@ msgstr "认证网卡的IP地址"
 msgid "Main control of SGUClient"
 msgstr "SGUClient总开关"
 
-msgid "Reconnect if client went off-line(Generally NOT checked)"
-msgstr "客户端离线时自动重连"
+msgid "You may want to disable this during debug"
+msgstr "建议仅在调试阶段取消勾选本项"
 
 msgid "No 802.1x heart beat and cancel alarm(Generally NOT checked)"
 msgstr "不需802.1x心跳并关闭超时闹钟(一般不勾选,仅小部分移动网络需要)"
