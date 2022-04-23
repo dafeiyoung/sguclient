@@ -470,7 +470,18 @@ int SendU40DllUpdater(uint8 type){
     * 客户端IP*：
     *  只存在于U40-3，其他包均为0。
     */
+#if DRCOM_VERBOSE_LOG
     printf("Drcom: Sending U40 response phase %d\n",type);
+#else
+    switch (type) {
+        case 1:
+            printf(DMSG_SendU40_1);break;
+        case 3:
+            printf(DMSG_SendU40_3);break;
+        default:
+            printf("WTF??");break;
+    }
+#endif
     const int pkt_data_len = 40;
     uint8 pkt_data[pkt_data_len];
 
@@ -764,6 +775,9 @@ static void printAll(char* str){
  */
 void* DrComServerDaemon(void *args)
 {
+#if DRCOM_VERBOSE_LOG == 0
+    setbuf(stdout, NULL);
+#endif
     /*允许取消进程*/
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     /*异步取消， 线程接到取消信号后，立即退出*/
@@ -786,11 +800,11 @@ void* DrComServerDaemon(void *args)
 
         if ( needToSendDrComStart )
         {
-            printf("Drcom: Sending login request U8\n");
+            printf(DMSG_SendU8);
             ret = SendU8GetChallenge();
             if(ret != 0)
             {
-                printf("Drcom: Login request U8 failed\n");
+                printf(DMSG_SendU8_Fail);
                 return NULL;
             }
             needToSendDrComStart = 0;
@@ -798,26 +812,26 @@ void* DrComServerDaemon(void *args)
         }
         //下面开始处理收到的数据包 这是一个以收到的数据包的标志位驱动的状态机//todo:会不会一个包被重复处理多次？
         if ((revData[0]==0x07)&&(revData[4]==0x02)){ //Response for start request U8
-            printf("Drcom: Got response for start request U8\n");
+            printf(DMSG_GotU8R);
 
             if (dstatus==DOFFLINE){ //还没有发送U244
-                printf("Drcom: Sending login request U244\n");
+                printf(DMSG_SendU244);
                 ret = SendU244Login();
                 if(ret != 0) {
-                    printf("Drcom: Login request U244 failed\n");
+                    printf(DMSG_SendU244_Fail);
                     continue;
                 }
 
             }else if ( dstatus == DONLINE )  //drcom协议 已经上线成功
             {
-                printf("Drcom: Sending heart beat U38\n");
+                printf(DMSG_SendU38);
                 ret = SendU38HeartBeat();
                 if(ret != 0)
                 {
-                    printf("Drcom: Heart beat U38 failed\n");
+                    printf(DMSG_SendU38_Fail);
                     continue;
                 }
-                printf("Drcom: Sent heart beat U38\n");
+                printf(DMSG_SentU38);
             }
             continue;
         }
@@ -825,13 +839,13 @@ void* DrComServerDaemon(void *args)
         if ( (revData[0] == 0x07) && (revData[4] == 0x04) )  //U244登录成功
         {
             U244ResponseParser();
-            printf("Drcom: Got U244 login response, U244 login success\n");
+            printf(DMSG_LoginU244);
             dstatus = DONLINE;
             DrInfo.U8Counter=2;//登录成功后是从2开始数
             ret = SendU40DllUpdater(1);
             if(ret != 0)
             {
-                printf("Drcom: U40 phase 1 error\n");
+                printf(DMSG_SendU40_1_Fail);
                 continue;
             }
         }
@@ -840,32 +854,34 @@ void* DrComServerDaemon(void *args)
         {
             U40ResponseParser();
             if (revData[5] == 0x02){
-                printf("Drcom: Got U40 response phase 2\n");
+                printf(DMSG_GotU40_2);
                 SendU40DllUpdater(3);
             }else if (revData[5] == 0x04){
-                printf("Drcom: Got U40 response phase 4, U40 cycle done\n");
-                printf("Drcom: Waiting for 10s before sending next U8\n");
-                sleep(10);
+                printf(DMSG_FinishU40);
+                printf(DMSG_StartInterval);
+                sleep(8);
+                printf(DMSG_DoneInterval);
+                printf(DMSG_SendU8);
                 ret = SendU8GetChallenge();
                 DrInfo.U8Counter++;
                 if(ret != 0)
                 {
-                    printf("Drcom: Login request U8 failed\n");
+                    printf(DMSG_SendU8_Fail);
                     return NULL;
                 }
-                printf("Drcom: Done\n");
+
             }drcom_pkt_counter++;
         }
 
         if ((revData[0] == 0x07) && (revData[4] == 0x06) )  //U38-R
         {
             //U38的回包没啥好处理的
-            printf("Drcom: Got U38 response. Keep alive cycle done!\n");
+            printf(DMSG_GotU38);
             sleep(1);
             ret = SendU40DllUpdater(1);
             if(ret != 0)
             {
-                printf("Drcom: U40 phase 1 error\n");
+                printf(DMSG_SendU40_1_Fail);
                 continue;
             }
         }
