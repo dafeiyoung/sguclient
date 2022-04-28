@@ -8,7 +8,7 @@ PROG=/usr/share/sguclient/sgud.sh
 sgud_loader() {
 	local enable
 	config_get_bool enable $1 enable 
-	if [ $enable -gt 0 ]; then
+	if [ "$enable" -gt 0 ]; then
 		rm /tmp/SGU_immortality 2&>1 1>/dev/null
 		local logtofile
 		local autoreconnect
@@ -59,7 +59,7 @@ stop_service(){
 	echo "SGUClient has stoped."	
 	
 }
-reload_sercice(){
+reload_service(){
 
 	stop
 	start
