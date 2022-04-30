@@ -39,7 +39,7 @@ sgud_loader() {
         procd_close_instance
         echo "SGUClient has started."
       else
-        rm /tmp/sgud_loader 2&>1 1>/dev/null
+        rm /tmp/SGU_immortality 2&>1 1>/dev/null
         #cat /var/run/sgud.pid | xargs kill -9 #在这里kill会引起procd重启sgud.sh
         killall -q sguclient
               echo "SGUClient has stopped."
@@ -55,7 +55,7 @@ start_service(){
 }
 stop_service(){
 
-	rm /tmp/sgud_loader 2&>1 1>/dev/null
+	rm /tmp/SGU_immortality 2&>1 1>/dev/null
 	#cat /var/run/sgud.pid | xargs kill -9
 	killall -q sguclient
 	echo "SGUClient has stoped."	
