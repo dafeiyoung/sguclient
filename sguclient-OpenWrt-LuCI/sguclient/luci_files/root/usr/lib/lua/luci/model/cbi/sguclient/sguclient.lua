@@ -42,4 +42,9 @@ for _, network in pairs(luci.sys.net.devices()) do
     end
 end
 
+local apply = luci.http.formvalue("cbi.apply")
+if apply then
+	io.popen("/etc/init.d/sguclient restart")
+end
+
 return m
