@@ -27,9 +27,9 @@ sgud_loader() {
         config_get isptype $1 isptype
         config_get ifname $1 ifname
         config_get_bool logtofile $1 logtofile
-        if [ $autoreconnect ];then cmd=$cmd" --auto";fi
         if [ $noheartbeat ];  then cmd=$cmd" --noheartbeat";fi
         if [ $autoreconnect ];then  #如果用户选择不开启重连,那么sgud.sh只会启动一次sguclient
+          cmd=$cmd" --auto"
           touch /tmp/SGU_immortality
         fi
         procd_open_instance
@@ -42,7 +42,7 @@ sgud_loader() {
         rm /tmp/SGU_immortality 2&>1 1>/dev/null
         #cat /var/run/sgud.pid | xargs kill -9 #在这里kill会引起procd重启sgud.sh
         killall -q sguclient
-              echo "SGUClient has stopped."
+        echo "SGUClient has stopped."
       fi
   fi
 
