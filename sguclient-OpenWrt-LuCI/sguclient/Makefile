@@ -28,7 +28,7 @@ define Build/Prepare
 		po2lmo $(po) $(PKG_BUILD_DIR)/$(patsubst %.po,%.lmo,$(notdir $(po)));)    #see wiki "Cross compile SGUClient for OpenWrt" for more detail
 endef
 
-define Package/sguclient/install
+define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(1)/bin
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_DIR) $(1)/etc/init.d
@@ -47,4 +47,9 @@ define Package/sguclient/install
 	$(INSTALL_DATA) ./i18n/zh-cn/*.lmo $(1)/usr/lib/lua/luci/i18n/
 endef
 
+define Package/$(PKG_NAME)/postrm
+	 #!/bin/sh
+	 echo Removeing sguclient.log
+	 rm -f /var/log/sguclient.log   #防止卸载后重装还能看到上一个版本的log引起混淆
+endef
 $(eval $(call BuildPackage,sguclient))
