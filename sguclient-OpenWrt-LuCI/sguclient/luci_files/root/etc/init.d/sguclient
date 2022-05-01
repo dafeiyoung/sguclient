@@ -3,16 +3,16 @@
 USE_PROCD=1
 START=99
 STOP=85
-PROG=/usr/share/sguclient/sgud.sh
+
+DAEMON=sgud.sh
+PROG=/usr/share/sguclient/$DAEMON
 
 sgud_loader() {
 
   local enable
   config_get_bool enable $1 enable
   # 有些路由器安装完软件包会自动执行start方法，该判断用于避免还没有设置配置文件导致的错误
-  if [ "$enable" != '0' ]; then
-      if [ "$enable" -gt 0 2&>1 1>/dev/null ]; then
-        rm /tmp/SGU_immortality 2&>1 1>/dev/null
+  if [ $enable ]; then
         local logtofile
         local autoreconnect
         local username
@@ -28,22 +28,15 @@ sgud_loader() {
         config_get ifname $1 ifname
         config_get_bool logtofile $1 logtofile
         if [ $noheartbeat ];  then cmd=$cmd" --noheartbeat";fi
-        if [ $autoreconnect ];then  #如果用户选择不开启重连,那么sgud.sh只会启动一次sguclient
-          cmd=$cmd" --auto"
-          touch /tmp/SGU_immortality
-        fi
+        # 如果用户选择不开启重连,那么sgud.sh只会启动一次sguclient
+        if [ $autoreconnect ];  then cmd=$cmd" --auto";fi
         procd_open_instance
-        procd_set_param command "$PROG" -u $username -p $password -i $isptype --device $ifname $cmd
-        procd_set_param pidfile /var/run/sgud.pid # 可有可无
-        procd_set_param respawn 1 1 1
+        procd_set_param pidfile /var/run/${DAEMON}.pid # 用pid文件做一个flag
+        procd_set_param command bash "$PROG" -u $username -p $password -i $isptype --device $ifname $cmd
+        # threshold：异常失败边界值3600；timeout：重启延迟时间1；retry：失败重启次数5
+        procd_set_param respawn 3600 1 5
         procd_close_instance
         echo "SGUClient has started."
-      else
-        rm /tmp/SGU_immortality 2&>1 1>/dev/null
-        #cat /var/run/sgud.pid | xargs kill -9 #在这里kill会引起procd重启sgud.sh
-        killall -q sguclient
-        echo "SGUClient has stopped."
-      fi
   fi
 
 }
@@ -55,10 +48,9 @@ start_service(){
 }
 stop_service(){
 
-	rm /tmp/SGU_immortality 2&>1 1>/dev/null
-	#cat /var/run/sgud.pid | xargs kill -9
-	killall -q sguclient
-	echo "SGUClient has stoped."	
+	rm -f /var/run/${DAEMON}.pid 2&>1 1>/dev/null
+  killall -q sguclient
+  echo "SGUClient has stopped."
 	
 }
 reload_service(){
@@ -69,7 +61,13 @@ reload_service(){
 }
 service_triggers(){
 
-   procd_add_reload_trigger sguclient
+  procd_add_reload_trigger sguclient
    
+}
+restart(){
+
+  stop
+  start
+
 }
 
