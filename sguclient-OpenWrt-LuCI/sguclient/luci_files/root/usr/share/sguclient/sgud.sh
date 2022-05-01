@@ -1,37 +1,38 @@
 #!/bin/sh
-#sguclient daemon 
+#sguclient daemon
 
 LOG_FILE=/var/log/sguclient.log
 
 clean_log() {
-	
- 	local logsnum=$(cat $LOG_FILE 2>/dev/null | wc -l)
-	[ "$logsnum" -gt 300 ] && {
-		tail -n 10 $LOG_FILE >$LOG_FILE
-		echo "$(date "+%Y-%m-%d %H:%M:%S") 日志文件过长，清空处理！" >>$LOG_FILE
-	}
+
+  local logsnum=$(cat $LOG_FILE 2>/dev/null | wc -l)
+  [ "$logsnum" -gt 300 ] && {
+    tail -n 10 $LOG_FILE >$LOG_FILE
+    echo "$(date "+%Y-%m-%d %H:%M:%S") 日志文件过长，清空处理！" >>$LOG_FILE
+  }
+
 }
 
-/bin/sguclient $@ 2&>1  1>>$LOG_FILE  & 
+# 首次启动sguclient
+/bin/sguclient $@ 2 &>1 1>>$LOG_FILE &
 
-while true
-do
-	sleep 30
-	process=`pgrep sguclient`
-	if [  -z "$process" ];then
-		if [  -f "/tmp/SGU_immortality" ]; then 
-			/bin/sguclient $@ 2&>1 1>>$LOG_FILE  &
-		else
-			#exit  #不要退出,否则会引起procd重启sgud.sh导致sguclient又被启动
-			sleep 114514
-		fi   
-	fi
-	clean_log
-done 
+while true; do
 
+  sleep 30
+  process=$(pgrep sguclient)
+  # 如果用户选择开启重连,那么sgud.sh会保活sguclient
+  if [[ $@ =~ "auto" ]]; then
+    # 如果存在"sgud.sh.pid"说明并未调用stop_service或者procd守护进程并未退出，应继续保活sguclient
+    if [ -z "$process" ]; then
+      if [ -f "/var/run/sgud.sh.pid" ]; then
+        /bin/sguclient $@ 2 &>1 1>>$LOG_FILE &
+      fi
+    fi
+  else # 如果不需要重启，一旦sguclient挂掉了，也关闭sgud守护进程
+    if [ -z "$process" ]; then
+      /etc/init.d/sguclient stop
+    fi
+  fi
+  clean_log
 
-
-
-
-
-
+done
