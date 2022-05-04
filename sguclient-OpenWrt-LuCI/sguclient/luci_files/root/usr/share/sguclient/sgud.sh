@@ -25,7 +25,7 @@ while true; do
     # 如果存在"sgud.sh.pid"说明并未调用stop_service或者procd守护进程并未退出，应继续保活sguclient
     if [ -z "$process" ]; then
       if [ -f "/var/run/sgud.sh.pid" ]; then
-        /bin/sguclient $@ 2 &>1 1>>$LOG_FILE &
+        /bin/sguclient $@ 2&>1 1>>$LOG_FILE &
       fi
     fi
   else # 如果不需要重启，一旦sguclient挂掉了，也关闭sgud守护进程
