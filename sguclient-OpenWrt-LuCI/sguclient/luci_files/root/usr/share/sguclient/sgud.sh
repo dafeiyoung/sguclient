@@ -13,8 +13,19 @@ clean_log() {
 
 }
 
+# 解决有时候"procd_set_param pidfile"命令会失效没能正确的生成pid文件
+# 当pid文件没有生成时手动生成pid文件
+# 该shell必须放在sgud.sh里，因为只有/etc/init.d/sguclient start_service方法调用完，才会创建sgud.sh的进程，才能获取到pid
+if [ -f "/var/run/sgud.sh.pid" ]; then
+  echo "pid文件存在"
+else
+  echo "pid文件不存在，手动创建pid"
+	touch /var/run/sgud.sh.pid 2&>1 >/dev/null
+	pgrep sgud.sh -f >/var/run/sgud.sh.pid 2>&1 &
+fi
+
 # 首次启动sguclient
-/bin/sguclient $@ 2 &>1 1>>$LOG_FILE &
+/bin/sguclient $@ 2&>1 1>>$LOG_FILE &
 
 while true; do
 
