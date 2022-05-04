@@ -25,7 +25,7 @@ else
 fi
 
 # 首次启动sguclient
-/bin/sguclient $@ 2 &>1 1>>$LOG_FILE &
+/bin/sguclient $@ 2&>1 1>>$LOG_FILE &
 
 while true; do
 
