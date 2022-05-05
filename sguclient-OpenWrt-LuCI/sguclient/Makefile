@@ -24,8 +24,6 @@ endef
 define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)
 	$(CP) ./src/* $(PKG_BUILD_DIR)/
-	$(foreach po,$(wildcard ${CURDIR}/i18n/zh-cn/*.po), \  
-		po2lmo $(po) $(PKG_BUILD_DIR)/$(patsubst %.po,%.lmo,$(notdir $(po)));)    #see wiki "Cross compile SGUClient for OpenWrt" for more detail
 endef
 
 define Package/$(PKG_NAME)/install
@@ -49,7 +47,10 @@ endef
 
 define Package/$(PKG_NAME)/postrm
 	 #!/bin/sh
-	 echo Removeing sguclient.log
+	 echo "Removeing sguclient temporary file"
+	 rm -f /var/run/sguclient.pid 2&>1 >/dev/null
+	 rm -f /var/run/${DAEMON}.pid 2&>1 >/dev/null
 	 rm -f /var/log/sguclient.log   #防止卸载后重装还能看到上一个版本的log引起混淆
 endef
+
 $(eval $(call BuildPackage,sguclient))
