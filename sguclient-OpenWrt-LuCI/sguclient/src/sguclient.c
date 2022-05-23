@@ -264,7 +264,7 @@ void time_out_handler()
             exit(EXIT_FAILURE);
         }
 
-        if ( auto_rec == 0 )
+        if ( auto_rec )
         {
             printf("Try auto reconnect in 5 secs...\n");
             reconnect_times++;
@@ -502,7 +502,7 @@ else if(isp_type=='Y')               //移动部分
         case EAP_FAILURE:
             alarm(0);  //取消闹钟
             fprintf(stdout, ">>Protocol: EAP_FAILURE\n");
-            if(auto_rec)
+            if( auto_rec )
             {
                fprintf(stdout, "&&Info: Authentication Failed, auto reconnect in a few sec...\n");
                auto_reconnect(1); //重连，传入睡眠时间
@@ -1130,7 +1130,7 @@ void show_local_info ()
     char *is_auto_buf="No";
     char *isp_type_buf="Unknown";
     char *timeout_alarm_1x_buf = "Enabled";
-    if (1 == auto_rec)
+    if ( auto_rec )
     {
         is_auto_buf="Yes";
     }

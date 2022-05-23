@@ -47,9 +47,9 @@ endef
 
 define Package/$(PKG_NAME)/postrm
 	 #!/bin/sh
-	 echo "Removeing sguclient temporary file"
-	 rm -f /var/run/sguclient.pid 2&>1 >/dev/null
-	 rm -f /var/run/${DAEMON}.pid 2&>1 >/dev/null
+	 echo "Removeing sguclient temporary file."
+	 rm -f /var/run/sguclient.pid >/dev/null 2>&1
+	 rm -f /var/run/${DAEMON}.pid >/dev/null 2>&1
 	 rm -f /var/log/sguclient.log   #防止卸载后重装还能看到上一个版本的log引起混淆
 endef
 

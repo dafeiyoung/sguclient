@@ -18,9 +18,9 @@ clean_log() {
 # 当pid文件没有生成时手动生成pid文件
 # 该shell必须放在sgud.sh里，因为只有/etc/init.d/sguclient start_service方法调用完，才会创建sgud.sh的进程，才能获取到pid
 if [ -f "/var/run/sgud.sh.pid" ]; then
-  echo "pid文件存在"
+  echo "pid文件存在."
 else
-  echo "pid文件不存在，手动创建pid"
+  echo "pid文件不存在，手动创建pid."
 	touch /var/run/sgud.sh.pid  >/dev/null 2>&1
 	pgrep sgud.sh -f >/var/run/sgud.sh.pid 2>&1 &
 fi

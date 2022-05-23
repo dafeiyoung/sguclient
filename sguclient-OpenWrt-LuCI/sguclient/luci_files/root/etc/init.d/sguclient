@@ -48,9 +48,9 @@ start_service(){
 }
 stop_service(){
 
-  rm -f /var/run/${DAEMON}.pid 2&>1 >/dev/null
-  sguclient -k 2&>1 >/dev/null
-  rm -f /var/run/sguclient.pid 2&>1 >/dev/null
+  rm -f /var/run/${DAEMON}.pid >/dev/null 2>&1
+  sguclient -k >/dev/null 2>&1
+  rm -f /var/run/sguclient.pid >/dev/null 2>&1
   echo "SGUClient has stopped."
 	
 }
