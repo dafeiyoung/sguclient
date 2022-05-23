@@ -8,8 +8,7 @@ clean_log() {
   local logsnum
   logsnum=$(cat $LOG_FILE 2>/dev/null | wc -l)
   [ "$logsnum" -gt 200 ] && {
-    tail -n 10 $LOG_FILE > ${LOG_FILE}.tmp && mv ${LOG_FILE}.tmp $LOG_FILE
-    echo "$(date "+%Y-%m-%d %H:%M:%S") 日志文件过长，清空处理！" >>$LOG_FILE
+    echo -e "\n$(date "+%Y-%m-%d %H:%M:%S") 日志文件过长，清空处理！" >$LOG_FILE
   }
 
 }
