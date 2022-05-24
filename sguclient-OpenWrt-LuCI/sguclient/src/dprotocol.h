@@ -43,7 +43,7 @@
 
 #if DRCOM_VERBOSE_LOG
 #define DMSG_SendU8          "Drcom: Sending login request U8\n"
-#define DMSG_SendU8_Fail     "DrCom: 初始数据包发送失败!\n"
+#define DMSG_SendU8_Fail     "DrCom: Sending login request U8 failed\n"
 #define DMSG_GotU8R          "Drcom: Got response for start request U8\n"
 #define DMSG_SendU244        "Drcom: Sending login request U244\n"
 #define DMSG_SendU244_Fail   "Drcom: Login request U244 failed\n"
@@ -66,7 +66,7 @@
 #define DMSG_SendU38        " U38↑"
 #define DMSG_SendU38_Fail   " =✖ !!\n"
 #define DMSG_SentU38        "✓--"
-#define DMSG_LoginU244      "↓✓        "
+#define DMSG_LoginU244      "↓✓﹣﹣ "
 #define DMSG_SendU40_1_Fail "U40-1↑✖ !!\n "
 #define DMSG_GotU40_2       "--2↓"
 #define DMSG_FinishU40      "--4↓U40✓"
