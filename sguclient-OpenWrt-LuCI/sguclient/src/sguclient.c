@@ -587,6 +587,7 @@ void send_eap_packet(enum EAPType send_type)
                         }
                         alarm(WAIT_START_TIME_OUT);  //等待回应
                         fprintf(stdout, ">>Protocol: <CTCC>SEND EAPOL-Start\n");
+			fflush(stdout);//强制刷新缓存输出流，避免导致延迟输出到文件
                         break;
 
                     case 'Y':
