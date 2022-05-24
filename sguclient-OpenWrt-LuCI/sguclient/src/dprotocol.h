@@ -66,7 +66,7 @@
 #define DMSG_SendU38        " U38↑"
 #define DMSG_SendU38_Fail   " =✖ !!\n"
 #define DMSG_SentU38        "✓--"
-#define DMSG_LoginU244      "↓✓    "
+#define DMSG_LoginU244      "↓ ✓    "
 #define DMSG_SendU40_1_Fail "U40-1↑✖ !!\n "
 #define DMSG_GotU40_2       "--2↓"
 #define DMSG_FinishU40      "--4↓U40✓"
