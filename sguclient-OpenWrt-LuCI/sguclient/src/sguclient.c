@@ -307,7 +307,7 @@ void auto_reconnect(int sleep_time_sec,char type)
             }
 
         }
-    }
+    } else return;
 }
 
 /*
