@@ -775,9 +775,7 @@ static void printAll(char* str){
  */
 void* DrComServerDaemon(void *args)
 {
-#if DRCOM_VERBOSE_LOG == 0
-    setbuf(stdout, NULL);
-#endif
+
     /*允许取消进程*/
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     /*异步取消， 线程接到取消信号后，立即退出*/

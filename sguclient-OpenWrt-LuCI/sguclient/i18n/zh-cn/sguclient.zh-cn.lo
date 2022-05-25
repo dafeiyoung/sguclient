@@ -10,6 +10,9 @@ msgstr "自动重连"
 msgid "No 1x Heart Beat"
 msgstr "不需要802.1x心跳"
 
+msgid "Debug mode"
+msgstr "调试模式"
+
 msgid "1x Username"
 msgstr "内网(校园网)账号"
 
@@ -28,11 +31,14 @@ msgstr "认证网卡的IP地址"
 msgid "Main control of SGUClient"
 msgstr "SGUClient总开关"
 
-msgid "You may want to disable this during debug"
-msgstr "建议仅在调试阶段取消勾选本项"
+msgid "Suggest enable(Otherwise, the program will only be reconnected five times)"
+msgstr "建议勾选本项"
 
 msgid "No 802.1x heart beat and cancel alarm(Generally NOT checked)"
 msgstr "不需802.1x心跳并关闭超时闹钟(一般不勾选,仅小部分移动网络需要)"
+
+msgid "Logs will not be cleared automatically in debug mode(Do not open it for a long time)"
+msgstr "调试模式下将不会自动清空日志（请勿长时间开启）"
 
 msgid "Fill in your 802.1x username"
 msgstr "请填入你的内网账号"
@@ -40,38 +46,17 @@ msgstr "请填入你的内网账号"
 msgid "Fill in your 802.1x password"
 msgstr "请填入你的内网密码"
 
-msgid "Chose your ISP Type"
-msgstr "选择你的实际网络运营商类型"
-
 msgid "CTCC(DX)"
 msgstr "电信"
 
 msgid "CMCC(YD)"
 msgstr "移动"
 
-msgid "Get Ip Address from interface"
-msgstr "根据所选网卡自动读取IPv4地址"
-
-msgid "Click Refresh to get"
-msgstr "单击刷新获取"
+msgid "Chose your ISP Type"
+msgstr "选择你的实际网络运营商类型"
 
 msgid "Chose your authentication interface"
 msgstr "请选择你的内网认证网卡"
 
-msgid "Authentication interface IPv4 address(view only)"
-msgstr "上述认证网卡的实际IPv4地址(仅供查看)"
-
 msgid "Log"
 msgstr "日志"
-
-msgid "Save output log to file"
-msgstr "保存输出到日志文件"
-
-msgid "Notice: ONLY enable this during testing. This file can easily get bigger than 5M"
-msgstr "注意:此选项只应在测试期间开启.长期运行时该日志文体积很快会超过5M"
-
-msgid "Notice for log"
-msgstr "注意"
-
-msgid "Log will only be saved if 'Save output log to file' is enabled."
-msgstr "只有在勾选'保存输出日志到文件'时 才可在此处查看程序日志"
