@@ -159,6 +159,7 @@ static void signal_interrupted(int signo)
 {
     fprintf(stdout,"\n&&Info: USER Interrupted. \n");
     send_eap_packet(EAPOL_LOGOFF);
+    fprintf(stdout,"&&Info: The program successfully exited. \n\n");
     pcap_breakloop (pcapHandle);
 }
 
@@ -172,6 +173,9 @@ static void signal_interrupted(int signo)
  */
 int main(int argc, char **argv)
 {
+
+    //关闭标准输出缓冲区，避免导致延迟输出到文件
+    setbuf(stdout, NULL);
 
     //初始化并解释程序的启动参数
     init_arguments (&argc, &argv);

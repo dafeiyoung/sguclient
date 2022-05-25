@@ -13,7 +13,7 @@ define Package/$(PKG_NAME)
 SECTION:=utils
 CATEGORY:=Utilities
 TITLE:=sguclient
-MAINTAINER:=young
+MAINTAINER:=young,FurryAcetylCoA,IDeLoveYou
 DEPENDS:=+libpcap +libpthread
 endef 
  
@@ -36,20 +36,20 @@ define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/i18n
 
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/sguclient $(1)/bin/
-	$(INSTALL_CONF) ./luci_files/root/etc/config/sguclient $(1)/etc/config/sguclient
-	$(INSTALL_BIN)  ./luci_files/root/etc/init.d/sguclient $(1)/etc/init.d/sguclient
-	$(INSTALL_BIN)  ./luci_files/root/usr/share/sguclient/sgud.sh $(1)/usr/share/sguclient/sgud.sh
-	$(INSTALL_DATA) ./luci_files/root/usr/lib/lua/luci/model/cbi/sguclient/log.lua $(1)/usr/lib/lua/luci/model/cbi/sguclient/log.lua
-	$(INSTALL_DATA) ./luci_files/root/usr/lib/lua/luci/model/cbi/sguclient/sguclient.lua $(1)/usr/lib/lua/luci/model/cbi/sguclient/sguclient.lua
-	$(INSTALL_DATA) ./luci_files/root/usr/lib/lua/luci/controller/sguclient.lua $(1)/usr/lib/lua/luci/controller/sguclient.lua
+	$(INSTALL_CONF) ./files/root/etc/config/sguclient $(1)/etc/config/sguclient
+	$(INSTALL_BIN)  ./files/root/etc/init.d/sguclient $(1)/etc/init.d/sguclient
+	$(INSTALL_BIN)  ./files/root/usr/share/sguclient/sgud.sh $(1)/usr/share/sguclient/sgud.sh
+	$(INSTALL_DATA) ./files/root/usr/lib/lua/luci/model/cbi/sguclient/log.lua $(1)/usr/lib/lua/luci/model/cbi/sguclient/log.lua
+	$(INSTALL_DATA) ./files/root/usr/lib/lua/luci/model/cbi/sguclient/sguclient.lua $(1)/usr/lib/lua/luci/model/cbi/sguclient/sguclient.lua
+	$(INSTALL_DATA) ./files/root/usr/lib/lua/luci/controller/sguclient.lua $(1)/usr/lib/lua/luci/controller/sguclient.lua
 	$(INSTALL_DATA) ./i18n/zh-cn/*.lmo $(1)/usr/lib/lua/luci/i18n/
 endef
 
 define Package/$(PKG_NAME)/postrm
 	 #!/bin/sh
-	 echo "Removeing sguclient temporary file"
-	 rm -f /var/run/sguclient.pid 2&>1 >/dev/null
-	 rm -f /var/run/${DAEMON}.pid 2&>1 >/dev/null
+	 echo "Removeing sguclient temporary file."
+	 rm -f /var/run/sguclient.pid >/dev/null 2>&1
+	 rm -f /var/run/${DAEMON}.pid >/dev/null 2>&1
 	 rm -f /var/log/sguclient.log   #防止卸载后重装还能看到上一个版本的log引起混淆
 endef
 

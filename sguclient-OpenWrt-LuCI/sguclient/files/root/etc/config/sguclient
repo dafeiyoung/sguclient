@@ -1,0 +1,3 @@
+config login
+	option username ''
+	option password ''

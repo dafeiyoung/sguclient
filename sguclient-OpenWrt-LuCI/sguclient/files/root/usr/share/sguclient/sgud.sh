@@ -26,7 +26,9 @@ fi
 
 # 首次启动sguclient
 /bin/sguclient "$@" 1>>$LOG_FILE 2>&1 &
-autorestart=$(echo "$@" | grep "\-auto") 
+autorestart=$(echo "$@" | grep "\-auto")
+debug=$(tail /etc/config/sguclient | grep 'debug')
+
 while true; do
 
   sleep 30
@@ -44,6 +46,12 @@ while true; do
       /etc/init.d/sguclient stop
     fi
   fi
-  clean_log
+
+  #清理日志
+  if [ -n "$debug" ]; then
+    echo "Logs are not cleared in debug mode."
+  else
+    clean_log
+  fi
 
 done
