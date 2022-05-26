@@ -10,15 +10,15 @@ PKG_BUILD_DIR:= $(BUILD_DIR)/$(PKG_NAME)
 include $(INCLUDE_DIR)/package.mk
 
 define Package/$(PKG_NAME)
-SECTION:=utils
-CATEGORY:=Utilities
-TITLE:=sguclient
-MAINTAINER:=young,FurryAcetylCoA,IDeLoveYou
-DEPENDS:=+libpcap +libpthread
+	SECTION:=utils
+	CATEGORY:=Utilities
+	TITLE:=sguclient
+	MAINTAINER:=young,FurryAcetylCoA,IDeLoveYou
+	DEPENDS:=+libpcap +libpthread
 endef 
  
 define Package/$(PKG_NAME)/description
-sguclient general program
+	sguclient general program
 endef
  
 define Build/Prepare
@@ -46,14 +46,14 @@ define Package/$(PKG_NAME)/install
 endef
 
 define Package/$(PKG_NAME)/postrm
-	 #!/bin/sh
-	 echo "Removeing sguclient temporary file."
-	 rm -r /usr/share/sguclient >/dev/null 2>&1
-     rm -r /overlay/upper/usr/lib/lua/luci/model/cbi/sguclient >/dev/null 2>&1
-     rm -f /tmp/.uci/sguclient >/dev/null 2>&1
-	 rm -f /var/run/sguclient.pid >/dev/null 2>&1
-	 rm -f /var/run/${DAEMON}.pid >/dev/null 2>&1
-	 rm -f /var/log/sguclient.log >/dev/null 2>&1   #防止卸载后重装还能看到上一个版本的log引起混淆
+	#!/bin/sh
+	echo "Removeing sguclient temporary file."
+	rm -r /usr/share/sguclient >/dev/null 2>&1
+	rm -r /overlay/upper/usr/lib/lua/luci/model/cbi/sguclient >/dev/null 2>&1
+	rm -f /tmp/.uci/sguclient >/dev/null 2>&1
+	rm -f /var/run/sguclient.pid >/dev/null 2>&1
+	rm -f /var/run/${DAEMON}.pid >/dev/null 2>&1
+	rm -f /var/log/sguclient.log >/dev/null 2>&1   #防止卸载后重装还能看到上一个版本的log引起混淆
 endef
 
 $(eval $(call BuildPackage,sguclient))
