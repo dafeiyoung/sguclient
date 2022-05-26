@@ -5,8 +5,7 @@ LOG_FILE=/var/log/sguclient.log
 
 clean_log() {
 
-  local logsnum
-  logsnum=$(cat $LOG_FILE 2>/dev/null | wc -l)
+  local logsnum=$(cat $LOG_FILE 2>/dev/null | wc -l)
   [ "$logsnum" -gt 200 ] && {
     echo "$(date "+%Y-%m-%d %H:%M:%S") 日志文件过长，清空处理！" >$LOG_FILE
   }
@@ -19,15 +18,22 @@ clean_log() {
 if [ -f "/var/run/sgud.sh.pid" ]; then
   echo "pid文件存在."
 else
-  echo "pid文件不存在，手动创建pid."
+  echo "pid文件不存在,手动创建pid."
 	touch /var/run/sgud.sh.pid  >/dev/null 2>&1
 	pgrep sgud.sh -f >/var/run/sgud.sh.pid 2>&1 &
 fi
 
+autorestart=$(echo "$@" | grep "\-auto")
+debug=$(echo "$@" | grep "\-debug")
+
+#调试模式下清空日志(防止日志爆满)
+if [ -n "$debug" ]; then
+  rm -f $LOG_FILE >/dev/null 2>&1
+  echo "用户启动调试模式,日志清空一次." >/dev/null 2>&1
+fi
+
 # 首次启动sguclient
 /bin/sguclient "$@" 1>>$LOG_FILE 2>&1 &
-autorestart=$(echo "$@" | grep "\-auto")
-debug=$(tail /etc/config/sguclient | grep 'debug')
 
 while true; do
 
@@ -49,7 +55,7 @@ while true; do
 
   #清理日志
   if [ -n "$debug" ]; then
-    echo "Logs are not cleared in debug mode."
+    echo "用户启动调试模式,日志将不会自动清空." >/dev/null 2>&1
   else
     clean_log
   fi

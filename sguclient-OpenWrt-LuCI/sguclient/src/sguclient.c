@@ -51,6 +51,7 @@ char         *password = NULL;
 
 int           exit_flag = 0;
 int           auto_rec = 0;             /* 断线重拨 */
+int           debug_log_style = 0;      /* 调试模式下详细的日志输出 */
 int           isReconnecting = 0;       /* 防止掉线后，drcom进程的重新创建之后重复发送EAPOL_START包 */
 int           timeout_alarm_1x = 1;
 int           reconnect_times = 0;      /* 超时重连次数 */
@@ -98,12 +99,12 @@ void printNotification(const struct eap_header *eap_header)
 {
     char *buf = (char *)eap_header;  //拷贝一份EAP/EAPOL数据包供打印
     int i = 0;
-    printf("&&Got notification: ");
+    printf("%s\tGot notification: ",getTime());
     for (i = 0; i < 46; ++i)    //准备打印整个EAP/EAPOL数据包
     {
         if ( (*buf >= 32) && (*buf <= 127) )  //printable
         {
-            printf("%c", *buf);
+            printf("%c.", *buf);
         }
         buf ++;
     }
@@ -141,11 +142,30 @@ void print_hex(uint8_t *array, int count)
     for(i = 0; i < count; i++){
         if ( !(i % 16))
             printf ("\n");
-        printf("%02x ", array[i]);
+        printf("%02x  .", array[i]);
     }
     printf("\n");
 }
 
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name:  getTime
+ *  Description:  获取当前系统时间
+ *        Input:  无
+ *       Output:  char*
+ * =====================================================================================
+ */
+char* getTime()
+{
+    time_t rawTime;
+    struct tm *info;
+    static char buffer[20];
+    time( &rawTime );
+    info = localtime( &rawTime );
+    strftime(buffer, 20, "%Y-%m-%d %H:%M:%S", info);
+
+    return buffer;
+}
 
 /*
  * ===  FUNCTION  ======================================================================
@@ -181,7 +201,7 @@ void DrcomAuthenticationEntry()
             perror("Failed Creating Drcom Thread!");
             exit(EXIT_FAILURE);
         } 
-        else printf("Drcom Thread Successfully Created.\n");
+        else printf("%s\tDrcom Thread Successfully Created.\n",getTime());
     } 
     else return;
 }
@@ -212,7 +232,7 @@ void reStartDrcom(int sleep_time_sec)
         perror("Failed Canceling Drcom Thread!");
         exit(EXIT_FAILURE);
     }
-    else printf("Drcom Thread Successfully Canceled.\n");
+    else printf("%s\tDrcom Thread Successfully Canceled.\n",getTime());
 
     pthread_join(dtid, (void **) &ret0);//线程回收
 
@@ -222,7 +242,7 @@ void reStartDrcom(int sleep_time_sec)
         perror("Failed Creating Drcom Thread!");
         exit(EXIT_FAILURE);
     }
-    else printf("Drcom Thread Successfully Created.\n");
+    else printf("%s\tDrcom Thread Successfully Created.\n",getTime());
 
     sleep(sleep_time_sec);
 
@@ -242,10 +262,10 @@ void auto_reconnect(int sleep_time_sec,char type)
 {   //会有三种情况进入此处，一是timeout，二和三分别为移动的EAP_Failure
     if (type == 'T'){   //如果是time_out
 
-        printf("SGUClient wait package response time out! \nCheck your physical network connection!\n");
+        printf("%s\tSGUClient wait package response time out! Check your physical network connection!\n",getTime());
         if ( auto_rec ){    //用户启动重连，程序会一直重连
 
-            printf("The user enabled automatic reconnection, program will automatically reconnect in 5 secs...\n");
+            printf("%s\tThe user enabled automatic reconnection, program will automatically reconnect in 5 secs...\n",getTime());
             //以下为time_out的重连部分，重新初始化一些变量
             eapGlobalId = 1;
             sleep(sleep_time_sec);
@@ -254,12 +274,12 @@ void auto_reconnect(int sleep_time_sec,char type)
         } else {    //用户关闭自动重连，为了防止意外错误，程序一共会重连五次
 
             if ( reconnect_times >= 5 ) {   //timeout和EAP_Failure重连总次数超过5次
-                printf("SGUClient tried reconnect more than 5 times, and all failed.\n");
-                printf("SGUClient exits now!\n\n");
+                printf("\n%s\tSGUClient tried reconnect more than 5 times, and all failed.\n",getTime());
+                printf("%s\tSGUClient exits now!\n\n",getTime());
                 exit(EXIT_FAILURE);
             } else{
-                printf("To prevent accidental errors, program will automatically reconnect in 5 secs...\n");
-                printf("The times of reconnections: %dth\n",reconnect_times+1);
+                printf("%s\tTo prevent accidental errors, program will automatically reconnect in 5 secs...\n",getTime());
+                printf("%s\tThe times of reconnections: %dth.\n",getTime(),reconnect_times+1);
                 reconnect_times++;
                 //以下为time_out的重连部分，重新初始化一些变量
                 eapGlobalId = 1;
@@ -271,10 +291,10 @@ void auto_reconnect(int sleep_time_sec,char type)
 
     } else if (type == 'E'){    //如果是EAP_Failure
 
-        fprintf(stdout, "&&Info: Authentication Failed! \n");
+        fprintf(stdout, "%s\tInfo: Authentication Failed! \n",getTime());
         if( auto_rec ) {    //用户启动重连，程序会一直重连
 
-            fprintf(stdout, "&&Info: The user enabled automatic reconnection, program will automatically reconnect in 5 secs...\n");
+            fprintf(stdout, "%s\tInfo: The user enabled automatic reconnection, program will automatically reconnect in 5 secs...\n",getTime());
             //以下为EAP_Failure的重连部分
             if(isp_type=='D'){  //电信情况
                 reStartDrcom(sleep_time_sec);//电信部分需要重新创建drcom认证进程
@@ -288,12 +308,12 @@ void auto_reconnect(int sleep_time_sec,char type)
         } else {    //用户关闭自动重连，为了防止意外错误，程序一共会重连五次
 
             if ( reconnect_times >= 5 ) {   //timeout和EAP_Failure重连总次数超过5次
-                fprintf(stdout, "&&Info: SGUClient tried reconnect more than 5 times, and all failed.\n");
-                fprintf(stdout, "&&Info: SGUClient exits now!\n\n");
+                fprintf(stdout, "\n%s\tInfo: SGUClient tried reconnect more than 5 times, and all failed.\n",getTime());
+                fprintf(stdout, "%s\tInfo: SGUClient exits now!\n\n",getTime());
                 exit(EXIT_FAILURE);
             } else{
-                fprintf(stdout, "&&Info: To prevent accidental errors, program will automatically reconnect in 5 secs...\n");
-                fprintf(stdout, "&&Info: The times of reconnections: %dth\n",reconnect_times+1);
+                fprintf(stdout, "%s\tInfo: To prevent accidental errors, program will automatically reconnect in 5 secs...\n",getTime());
+                fprintf(stdout, "%s\tInfo: The times of reconnections: %dth.\n",getTime(),reconnect_times+1);
                 reconnect_times++;
                 //以下为EAP_Failure的重连部分
                 if(isp_type=='D'){  //电信情况
@@ -359,6 +379,8 @@ void show_usage()
             "\t                      Only effect the client. Server port will not be affected.\n\n"
             "\t--noheartbeat         Disable timeout alarm clock when waiting for next 802.1x package.\n"
             "\t                      Timeout should be disabled if there is NO 802.1x heart beat package.\n\n"
+            "\t--debug               In debug mode, logs are printed in more detail.\n"
+            "\t                      And in Sguclient on the OpenWRT side, logs are not cleared automatically.\n\n"
 
             "\t-b, --background      Program fork to background after authentication.\n\n"
 
@@ -432,11 +454,12 @@ enum EAPType get_eap_type(const struct eap_header *eap_header)
             return EAP_FAILURE;
     }
 
-    fprintf (stderr, "&&IMPORTANT: Unknown Package : eap_t:      %02x\n"
-                    "                               eap_id: %02x\n"
-                    "                               eap_op:     %02x\n",
-                    eap_header->eap_t, eap_header->eap_id,
-                    eap_header->eap_op);
+    fprintf (stderr,    "%s\tIMPORTANT: Unknown Package : eap_t:      %02x.\n"
+                        "                               eap_id: %02x.\n"
+                        "                               eap_op:     %02x.\n",
+                        getTime(),
+                        eap_header->eap_t, eap_header->eap_id,
+                        eap_header->eap_op);
 	exit(EXIT_FAILURE);
     return ERROR;
 }
@@ -455,15 +478,15 @@ void action_by_eap_type(enum EAPType pType,
 {
   if(isp_type=='D')                //电信部分
   {
-    printf("<CTCC>Received PackType: %d\n", pType);
+    printf("%s\t<CTCC>Received PackType: %d.\n",getTime(), pType);
     switch(pType)
     {
         case EAP_SUCCESS:
             alarm(0);  //取消闹钟
             reconnect_times = 0;//重置重连计数器
-            fprintf(stdout, ">>Protocol: EAP_SUCCESS\n");
-            fprintf(stdout, "&&Info: 802.1x Authorized Access to Network. \n");
-            fprintf(stdout, "        Then please use PPPOE manually to connect to Internet. \n");
+            fprintf(stdout, "%s\tProtocol: EAP_SUCCESS.\n",getTime());
+            fprintf(stdout, "%s\tInfo: 802.1x Authorized Access to Network.\n",getTime());
+            fprintf(stdout, "%s\tThen please use PPPOE manually to connect to Internet.\n\n",getTime());
             xstatus=XONLINE;
             //print_server_info (packet, packetinfo->caplen);
             if ( background )
@@ -476,13 +499,13 @@ void action_by_eap_type(enum EAPType pType,
         case EAP_FAILURE:
             alarm(0);  //取消闹钟
             xstatus=XOFFLINE;
-            fprintf(stdout, ">>Protocol: EAP_FAILURE\n");
+            fprintf(stdout, "%s\tProtocol: EAP_FAILURE.\n",getTime());
             auto_reconnect(3,'E');  //调用重连函数
             break;
 
         case EAP_REQUEST_IDENTITY:
             alarm(0);  //取消闹钟
-            fprintf(stdout, ">>Protocol: REQUEST EAP-Identity\n");
+            fprintf(stdout, "%s\tProtocol: REQUEST EAP-Identity.\n",getTime());
             //fprintf(stdout, "DEBUGER@@ current id:%d\n",header->eap_id);
             eapGlobalId=header->eap_id;
             init_frames();
@@ -491,7 +514,7 @@ void action_by_eap_type(enum EAPType pType,
 
         case EAP_REQUETS_MD5_CHALLENGE:
             alarm(0);  //取消闹钟
-            fprintf(stdout, ">>Protocol: REQUEST MD5-Challenge(PASSWORD)\n");
+            fprintf(stdout, "%s\tProtocol: REQUEST MD5-Challenge(PASSWORD).\n",getTime());
             //fprintf(stdout, "DEBUGER@@ current id:%d\n",header->eap_id);
             eapGlobalId=header->eap_id;
             init_frames();
@@ -501,7 +524,7 @@ void action_by_eap_type(enum EAPType pType,
 
         case EAP_REQUEST_IDENTITY_KEEP_ALIVE:
             alarm(0);  //取消闹钟
-            fprintf(stdout, ">>Protocol: REQUEST EAP_REQUEST_IDENTITY_KEEP_ALIVE\n");
+            fprintf(stdout, "%s\tProtocol: REQUEST EAP_REQUEST_IDENTITY_KEEP_ALIVE.\n",getTime());
             //fprintf(stdout, "DEBUGER@@ current id:%d\n",header->eap_id);
             eapGlobalId=header->eap_id;
             init_frames();
@@ -522,14 +545,14 @@ void action_by_eap_type(enum EAPType pType,
 
 else if(isp_type=='Y')               //移动部分
 {
-    printf("<CMCC>Received PackType: %d\n", pType);
+    printf("%s\t<CMCC>Received PackType: %d.\n", getTime(),pType);
     switch(pType)
     {
         case EAP_SUCCESS:
             alarm(0);  //取消闹钟
-            fprintf(stdout, ">>Protocol: EAP_SUCCESS\n");
-            fprintf(stdout, "&&Info: 802.1x Authorized Access to Network. \n");
-            fprintf(stdout, "        Then please use PPPOE manually to connect to Internet. \n");
+            fprintf(stdout, "%s\tProtocol: EAP_SUCCESS.\n",getTime());
+            fprintf(stdout, "%s\tInfo: 802.1x Authorized Access to Network.\n",getTime());
+            fprintf(stdout, "%s\tThen please use PPPOE manually to connect to Internet.\n\n",getTime());
             if (background)
             {
                 background = 0;   /* 防止以后误触发 */
@@ -539,13 +562,13 @@ else if(isp_type=='Y')               //移动部分
 
         case EAP_FAILURE:
             alarm(0);  //取消闹钟
-            fprintf(stdout, ">>Protocol: EAP_FAILURE\n");
+            fprintf(stdout, "%s\tProtocol: EAP_FAILURE.\n",getTime());
             auto_reconnect(1,'E');  //调用重连函数
             break;
 
         case EAP_REQUEST_IDENTITY:
             alarm(0);  //取消闹钟
-            fprintf(stdout, ">>Protocol: REQUEST EAP-Identity\n");
+            fprintf(stdout, "%s\tProtocol: REQUEST EAP-Identity.\n",getTime());
             //fprintf(stdout, "DEBUGER@@ current id:%d\n",header->eap_id);
             memset(eap_response_ident_YD + 14 + 5, header->eap_id, 1);
             send_eap_packet(EAP_RESPONSE_IDENTITY);
@@ -553,7 +576,7 @@ else if(isp_type=='Y')               //移动部分
 
         case EAP_REQUETS_MD5_CHALLENGE:
             alarm(0);  //取消闹钟
-            fprintf(stdout, ">>Protocol: REQUEST MD5-Challenge(PASSWORD)\n");
+            fprintf(stdout, "%s\tProtocol: REQUEST MD5-Challenge(PASSWORD).\n",getTime());
             //fprintf(stdout, "DEBUGER@@ current id:%d\n",header->eap_id);
             fill_password_md5((uint8_t*)header->eap_md5_challenge, header->eap_id);
             memset(eap_response_md5ch_YD + 14 + 5, header->eap_id, 1);
@@ -562,7 +585,7 @@ else if(isp_type=='Y')               //移动部分
 
         case EAP_REQUEST_IDENTITY_KEEP_ALIVE:
             alarm(0);  //取消闹钟
-            fprintf(stdout, ">>Protocol: REQUEST EAP_REQUEST_IDENTITY_KEEP_ALIVE\n");
+            fprintf(stdout, "%s\tProtocol: REQUEST EAP_REQUEST_IDENTITY_KEEP_ALIVE.\n",getTime());
             //fprintf(stdout, "DEBUGER@@ current id:%d\n",header->eap_id);
             eapGlobalId=header->eap_id;
             init_frames();
@@ -581,7 +604,7 @@ else if(isp_type=='Y')               //移动部分
         default:
             return;
     }
-  } else fprintf(stdout, "Unknown ISP Type!\n");
+  } else fprintf(stdout, "%s\tUnknown ISP Type!\n",getTime());
 }
 
 /*
@@ -608,15 +631,15 @@ void send_eap_packet(enum EAPType send_type)
                         int j =2;
                         for (i = 0; i < j; i++)  //模仿官方客户端，认证前发送2次logoff包
                         {
-                            fprintf(stdout, ">>Protocol: <CTCC>SEND EAPOL-Logoff Twice for CTCC 802.1x Protocol.\n");
+                            fprintf(stdout, "%s\tProtocol: <CTCC>SEND EAPOL-Logoff Twice for CTCC 802.1x Protocol.\n",getTime());
                             if (pcap_sendpacket(pcapHandle, eapol_logoff, sizeof(eapol_logoff)) != 0) {
                                 j=j+1;
-                                fprintf(stderr, "&&IMPORTANT: Error Sending the packet: %s\n", pcap_geterr(pcapHandle));
+                                fprintf(stderr, "%s\tIMPORTANT: Error Sending the packet: %s.\n", getTime(),pcap_geterr(pcapHandle));
                                 continue;
                             }
                         }
                         alarm(WAIT_START_TIME_OUT);  //等待回应
-                        fprintf(stdout, ">>Protocol: <CTCC>SEND EAPOL-Start Wait for the response.\n");
+                        fprintf(stdout, "%s\tProtocol: <CTCC>SEND EAPOL-Start Wait for the response.\n",getTime());
                         break;
 
                     case 'Y':
@@ -624,10 +647,10 @@ void send_eap_packet(enum EAPType send_type)
                           frame_data= eapol_start_YD;
                           frame_length = sizeof(eapol_start_YD);
                           alarm(WAIT_START_TIME_OUT);  //等待回应
-                          fprintf(stdout, ">>Protocol: <CMCC>SEND EAPOL-Start Wait for the response.\n");
+                          fprintf(stdout, "%s\tProtocol: <CMCC>SEND EAPOL-Start Wait for the response.\n",getTime());
                           break;
 
-                    default:fprintf(stdout, "Unknown ISP Type!\n");
+                    default:fprintf(stdout, "%s\tUnknown ISP Type!\n",getTime());
                 }
             }
             break;
@@ -640,17 +663,17 @@ void send_eap_packet(enum EAPType send_type)
                           //电信Logoff发包部分
                           frame_data = eapol_logoff;
                           frame_length = sizeof(eapol_logoff);
-                          fprintf(stdout, ">>Protocol: <CTCC>SEND EAPOL-Logoff\n");
+                          fprintf(stdout, "%s\tProtocol: <CTCC>SEND EAPOL-Logoff.\n",getTime());
                           break;
 
                     case 'Y':
                           //移动Logoff发包部分
                           frame_data = eapol_logoff_YD;
                           frame_length = sizeof(eapol_logoff_YD);
-                          fprintf(stdout, ">>Protocol: <CMCC>SEND EAPOL-Logoff\n");
+                          fprintf(stdout, "%s\tProtocol: <CMCC>SEND EAPOL-Logoff.\n",getTime());
                           break;
 
-                    default:fprintf(stdout, "Unknown ISP Type!\n");
+                    default:fprintf(stdout, "%s\tUnknown ISP Type!\n",getTime());
                 }
             }
             break;
@@ -670,7 +693,7 @@ void send_eap_packet(enum EAPType send_type)
                           else{
                             alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
                           }
-                          fprintf(stdout, ">>Protocol: <CTCC>SEND EAP-Response/Identity\n");
+                          fprintf(stdout, "%s\tProtocol: <CTCC>SEND EAP-Response/Identity.\n",getTime());
                           break;
 
                     case 'Y':
@@ -684,10 +707,10 @@ void send_eap_packet(enum EAPType send_type)
                           else{
                             alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
                           }
-                          fprintf(stdout, ">>Protocol: <CMCC>SEND EAP-Response/Identity\n");
+                          fprintf(stdout, "%s\tProtocol: <CMCC>SEND EAP-Response/Identity\n",getTime());
                           break;
 
-                          default:fprintf(stdout, "Unknown ISP Type!\n");
+                          default:fprintf(stdout, "%s\tUnknown ISP Type!\n",getTime());
                 }
             }
             break;
@@ -707,7 +730,7 @@ void send_eap_packet(enum EAPType send_type)
                           else{
                             alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
                           }
-                          fprintf(stdout, ">>Protocol: <CTCC>SEND EAP-Response/Md5-Challenge\n");
+                          fprintf(stdout, "%s\tProtocol: <CTCC>SEND EAP-Response/Md5-Challenge\n",getTime());
                           break;
                     case 'Y':
                           //移动response/md5_challenge发包部分
@@ -720,9 +743,9 @@ void send_eap_packet(enum EAPType send_type)
                           else{
                             alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
                           }
-                          fprintf(stdout, ">>Protocol: <CMCC>SEND EAP-Response/Md5-Challenge\n");
+                          fprintf(stdout, "%s\tProtocol: <CMCC>SEND EAP-Response/Md5-Challenge\n",getTime());
                           break;
-                    default:fprintf(stdout, "Unknown ISP Type!\n");
+                    default:fprintf(stdout, "%s\tUnknown ISP Type!\n",getTime());
                 }
             }
             break;
@@ -742,7 +765,7 @@ void send_eap_packet(enum EAPType send_type)
                           else{
                             alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
                           }
-                          fprintf(stdout, ">>Protocol: <CTCC>SEND EAP_RESPONSE_IDENTITY_KEEP_ALIVE\n");
+                          fprintf(stdout, "%s\tProtocol: <CTCC>SEND EAP_RESPONSE_IDENTITY_KEEP_ALIVE\n",getTime());
                           break;
                     case 'Y':
                           //移动response_identity_keep_alive发包部分
@@ -755,7 +778,7 @@ void send_eap_packet(enum EAPType send_type)
                           else{
                             alarm(WAIT_RESPONSE_TIME_OUT);  //等待回应
                           }
-                          fprintf(stdout, ">>Protocol: <CMCC>SEND EAP_RESPONSE_IDENTITY_KEEP_ALIVE\n");
+                          fprintf(stdout, "%s\tProtocol: <CMCC>SEND EAP_RESPONSE_IDENTITY_KEEP_ALIVE\n",getTime());
                           break;
                     default:fprintf(stdout, "Unknown ISP Type!\n");
                 }
@@ -765,13 +788,13 @@ void send_eap_packet(enum EAPType send_type)
             break;
 
         default:
-            fprintf(stderr,"&&IMPORTANT: Wrong Send Request Type.%02x\n", send_type);
+            fprintf(stderr,"IMPORTANT: Wrong Send Request Type.%02x\n", send_type);
             return;
     }
 
     if (pcap_sendpacket(pcapHandle, frame_data, frame_length) != 0)
     {
-        fprintf(stderr,"&&IMPORTANT: Error Sending the packet: %s\n", pcap_geterr(pcapHandle));
+        fprintf(stderr,"IMPORTANT: Error Sending the packet: %s\n", pcap_geterr(pcapHandle));
         return;
     }
 }
@@ -1179,19 +1202,19 @@ void show_local_info ()
     }
 
     printf("######## SGUClient  %s ########\n", SGU_VER);
-    printf("Device:     %s\n", dev);
-    printf("MAC:        %02x:%02x:%02x:%02x:%02x:%02x\n",
+    printf("Device:\t%s\n", dev);
+    printf("MAC:\t%02x:%02x:%02x:%02x:%02x:%02x\n",
                         local_mac[0],local_mac[1],local_mac[2],
                         local_mac[3],local_mac[4],local_mac[5]);
-    printf("IP:         %s\n", inet_ntop(AF_INET, &local_ip, buf, 32));
-    printf("ISP Type:   %s\n", isp_type_buf);
-    printf("Auto Reconnect: %s\n", is_auto_buf);
+    printf("IP:\t\t%s\n", inet_ntop(AF_INET, &local_ip, buf, 32));
+    printf("ISP Type:\t%s\n", isp_type_buf);
+    printf("Auto Reconnect:\t%s\n", is_auto_buf);
     if ( isp_type == 'D' )
     {
-        printf("Using UDP Port: %d\n", clientPort);
+        printf("Using UDP Port:\t%d\n", clientPort);
     }
-    printf("1x Timeout Alarm: %s\n", timeout_alarm_1x_buf);
-    printf("#####################################\n");
+    printf("1x Timeout Alarm:\t%s\n", timeout_alarm_1x_buf);
+    printf("#####################################\n\n");
 }
 
 
@@ -1210,6 +1233,7 @@ void init_arguments(int *argc, char ***argv)
         {"background",  no_argument,        &background,             1},
         {"auto",        no_argument,        &auto_rec,               1},
         {"noheartbeat", no_argument,        &timeout_alarm_1x,       0},
+        {"debug",       no_argument,        &debug_log_style,        1},
         {"device",      required_argument,  0,                       2},
         {"kill",        no_argument,        0,                     'k'},
         {"random",      no_argument,        0,                     'r'},
@@ -1260,12 +1284,12 @@ void init_arguments(int *argc, char ***argv)
            case 'r':
                clientPort = generateRandomPort();
                break;
-            case '?':
+           case '?':
                 if (optopt == 'u' || optopt == 'p'|| optopt == 'g'|| optopt == 'd')
                     fprintf (stderr, "Option -%c requires an argument.\n", optopt);
                 exit(EXIT_FAILURE);
                 break;
-            default:
+           default:
                 fprintf (stderr,"Unknown option character `\\x%x'.\n", c);
                 exit(EXIT_FAILURE);
         }

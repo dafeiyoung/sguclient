@@ -48,9 +48,12 @@ endef
 define Package/$(PKG_NAME)/postrm
 	 #!/bin/sh
 	 echo "Removeing sguclient temporary file."
+	 rm -r /usr/share/sguclient >/dev/null 2>&1
+     rm -r /overlay/upper/usr/lib/lua/luci/model/cbi/sguclient >/dev/null 2>&1
+     rm -f /tmp/.uci/sguclient >/dev/null 2>&1
 	 rm -f /var/run/sguclient.pid >/dev/null 2>&1
 	 rm -f /var/run/${DAEMON}.pid >/dev/null 2>&1
-	 rm -f /var/log/sguclient.log   #防止卸载后重装还能看到上一个版本的log引起混淆
+	 rm -f /var/log/sguclient.log >/dev/null 2>&1   #防止卸载后重装还能看到上一个版本的log引起混淆
 endef
 
 $(eval $(call BuildPackage,sguclient))

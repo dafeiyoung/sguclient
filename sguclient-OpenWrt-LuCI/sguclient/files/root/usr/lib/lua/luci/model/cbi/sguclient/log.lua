@@ -2,7 +2,7 @@ require("luci.sys")
 
 m = Map("sguclient", translate("SGUClient Log"), translate("Log file:/var/log/sguclient.log"))
 
-s = m:section(TypedSection, "login", "")  --ÕâÀïºÍÉÏÃæµÄmapÒ»¶¨ÒªÄÜ¶ÔÓ¦µ½Ò»¸öÒÑ¾­´æÔÚµÄÅäÖÃÎÄ¼şµÄÅäÖÃ×Ö¶Î
+s = m:section(TypedSection, "login", "")  --è¿™é‡Œå’Œä¸Šé¢çš„mapä¸€å®šè¦èƒ½å¯¹åº”åˆ°ä¸€ä¸ªå·²ç»å­˜åœ¨çš„é…ç½®æ–‡ä»¶çš„é…ç½®å­—æ®µ
 s.addremove = false
 s.anonymous = true
 view_cfg = s:option(TextValue, "1", nil)

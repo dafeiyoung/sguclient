@@ -21,7 +21,7 @@ s.anonymous = true
 enable = s:option(Flag, "enable", translate("Enable"), translate("Main control of SGUClient"))
 enable = s:option(Flag, "autoreconnect", translate("Auto Reconnect"), translate("Suggest enable(Otherwise, the program will only be reconnected five times)"))
 enable = s:option(Flag, "noheartbeat", translate("No 1x Heart Beat"), translate("No 802.1x heart beat and cancel alarm(Generally NOT checked)"))
-enable = s:option(Flag, "debug", translate("Debug mode"), translate("Logs will not be cleared automatically in debug mode(Do not open it for a long time)"))
+enable = s:option(Flag, "debug", translate("Debug mode"), translate("Logs will not be cleared automatically in debug mode, and the log will be more detailed(Do not open it for a long time)"))
 
 name = s:option(Value, "username", translate("1x Username"), translate("Fill in your 802.1x username"))
 pass = s:option(Value, "password", translate("1x Password"), translate("Fill in your 802.1x password"))
