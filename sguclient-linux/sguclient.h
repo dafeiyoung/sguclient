@@ -102,6 +102,8 @@ void    init_pcap();
 void    get_local_mac();
 void    get_local_ip();
 void    init_arguments(int *argc, char ***argv);
+char*   getTime();
+int     debug_log_style;
 
 void    fill_password_md5(uint8_t attach_key[], uint8_t eap_id);
 

@@ -54,7 +54,7 @@ void daemon_init(void)
 	if ( (pid = fork()) < 0)
 	    perror ("Fork");
 	else if (pid != 0) {
-        fprintf(stdout, "&&Info: SGUClient Forked background with PID: [%d]\n\n", pid);
+        fprintf(stdout, "%s\tInfo: SGUClient Forked background with PID: [%d].\n\n", getTime(),pid);
 		exit(0);
     }
 	setsid();		/* become session leader */
@@ -101,10 +101,10 @@ int program_running_check()
         if (fl.l_type != F_UNLCK) {
             if ( kill (fl.l_pid, SIGINT) == -1 )
                 perror("kill");
-            fprintf (stdout, "&&Info: Kill Signal Sent to PID %d.\n", fl.l_pid);
+            fprintf (stdout, "%s\tInfo: Kill Signal Sent to PID %d.\n", getTime(),fl.l_pid);
         }
         else 
-            fprintf (stderr, "&&Info: NO SGUClient Running.\n");
+            fprintf (stderr, "%s\tInfo: NO SGUClient Running.\n",getTime());
         close(hLockFile);
         exit (EXIT_FAILURE);
     }
@@ -157,9 +157,9 @@ void flock_reg()
  */
 static void signal_interrupted(int signo)
 {
-    fprintf(stdout,"\n&&Info: USER Interrupted. \n");
+    fprintf(stdout,"\n\n%s\tInfo: USER Interrupted. \n",getTime());
     send_eap_packet(EAPOL_LOGOFF);
-    fprintf(stdout,"&&Info: The program successfully exited. \n\n");
+    fprintf(stdout,"%s\tInfo: The program successfully exited.\n\n",getTime());
     pcap_breakloop (pcapHandle);
 }
 
@@ -184,14 +184,16 @@ int main(int argc, char **argv)
     //检测程序的副本运行（文件锁）
     int ins_pid;
     if ( (ins_pid = program_running_check ()) ) {
-        fprintf(stderr,"@@ERROR: SGUClient Already "
-                            "Running with PID %d\n", ins_pid);
-        fprintf(stdout, "&&Info: run 'sudo kill %d' or %s -k before re-running SGUClient'\n\n", ins_pid,argv[0]);
+        fprintf(stderr,"%s\t@@ERROR: SGUClient Already Running with PID %d.\n", getTime(),ins_pid);
+        fprintf(stdout,"%s\tInfo: run 'sudo kill %d' or %s -k before re-running SGUClient'.\n\n",getTime(), ins_pid,argv[0]);
         exit(EXIT_FAILURE);
     }
 
     //初始化用户信息
     init_info();
+
+    //初始化日志格式
+    init_logStyle();
 
     //初始化设备，打开网卡，获得Mac、IP等信息
     get_local_mac();
