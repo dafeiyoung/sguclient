@@ -1165,6 +1165,13 @@ void show_local_info() {
     }
     printf("1x Timeout Alarm:\t%s\n", timeout_alarm_1x_buf);
     printf("#####################################\n\n");
+    if (debug_log_style) {
+        printf("Tip:\tIf the Intranet is connected successfully, but the network cable is loose or the server does not respond. \n"
+               "\tResulting in a network disconnection and no packet response.\n"
+               "\tThe program will wait 15 minutes to try to retrieve the packet again.\n"
+               "\tThere may be an illusion that the software is stuck, but this is normal.\n"
+               "\tIf the server still does not respond after 15 minutes, the program will report an error.\n\n");
+    }
 }
 
 
