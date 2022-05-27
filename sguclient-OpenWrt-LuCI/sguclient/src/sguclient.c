@@ -45,8 +45,8 @@ pcap_t *pcapHandle;               /* packet capture pcapHandle */
  *-----------------------------------------------------------------------------
  *  用户信息的赋值变量，由init_argument函数初始化
  *-----------------------------------------------------------------------------*/
-int background = 0;            /* 后台运行标记  */
-char isp_type = 'D';              /* 运营商类型，默认是电信（西区）  D电信 Y移动  */
+int background = 0;             /* 后台运行标记  */
+char isp_type = 'D';            /* 运营商类型，默认是电信（西区）  D电信 Y移动  */
 char *dev = NULL;               /* 连接的设备名 */
 char *username = NULL;
 char *password = NULL;
@@ -65,7 +65,7 @@ int reconnect_times = 0;      /* 超时重连次数 */
 size_t username_length;
 size_t password_length;
 
-uint32_t local_ip;                   /* 网卡IP，网络序，下同 */
+uint32_t local_ip;                  /* 网卡IP，网络序，下同 */
 uint8_t local_mac[ETHER_ADDR_LEN];  /* MAC地址 */
 
 

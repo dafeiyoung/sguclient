@@ -21,7 +21,7 @@
 
 #include "public.h"
 #include <sys/types.h>
-#include <stdio.h> 
+#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -50,12 +50,16 @@ extern char dstatusMsg[256];
 
 
 void init_dial_env(void);
+
 void init_env_d();
 
-void* DrComServerDaemon(void *args);
+void *DrComServerDaemon(void *args);
+
 void init_logStyle();
-char*   getTime();
-int     debug_log_style;
+
+char *getTime();
+
+int debug_log_style;
 
 typedef struct {//注意端序
     uint8 ChallengeTimer[4];        //LE，本身是一个计数器，但被服务端兼Challenge使用
@@ -63,6 +67,6 @@ typedef struct {//注意端序
     uint8 ServerClientBufSerno[1];  //具体含义未知。推测与服务端内部实现有关
     uint8 MyDllVer[4];              //LE，与防宽带共享模块有关。推测服务端没有开启此功能，但是这个版本号需要保存
     uint8 U8Counter;                //U8的计数器
-}dr_info;
+} dr_info;
 
 #endif
