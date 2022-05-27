@@ -17,6 +17,7 @@
  */
 
 #include "public.h"
+
 int needToSendDrComStart;
 char user_id[32];
 char passwd[32];
@@ -35,10 +36,10 @@ unsigned int clientPort;
 #if DRCOM_DEBUG_ON > 0
 void print_hex_drcom(char *hex, int len)
 {
-    printf("print_hex_drcom\n");
+    printf("print_hex_drcom.\n");
     for (int i = 0; i < len; ++i) {
         if (i&&i%16==0){ printf("\n");}
-        printf("%.2x ",*((uint8*)hex + i));
+        printf("%.2x  .",*((uint8*)hex + i));
     }
     printf("\n\n");
 
@@ -53,10 +54,8 @@ void print_hex_drcom(char *hex, int len)
  *       Output:  是则返回1
  * =====================================================================================
  */
-inline int checkCPULittleEndian()
-{
-    union
-    {
+inline int checkCPULittleEndian() {
+    union {
         unsigned int a;
         unsigned char b;
     } c;
@@ -72,10 +71,12 @@ inline int checkCPULittleEndian()
  *       Output:  转换后的内容
  * =====================================================================================
  */
-inline uint32_t big2little_32(uint32_t A)
+inline uint32_t
+big2little_32(uint32_t
+A)
 {
-    return ((((uint32_t)(A) & 0xff000000) >>24) |
-        (((uint32_t)(A) & 0x00ff0000) >> 8) |
-        (((uint32_t)(A) & 0x0000ff00) << 8) |
-        (((uint32_t)(A) & 0x000000ff) << 24));
+return ((((uint32_t)(A) & 0xff000000) >>24) |
+(((uint32_t)(A) & 0x00ff0000) >> 8) |
+(((uint32_t)(A) & 0x0000ff00) << 8) |
+(((uint32_t)(A) & 0x000000ff) << 24));
 }

@@ -25,9 +25,6 @@ msgstr "网络运营商类型"
 msgid "AuthInterface"
 msgstr "认证网卡"
 
-msgid "Wan IP Address"
-msgstr "认证网卡的IP地址"
-
 msgid "Main control of SGUClient"
 msgstr "SGUClient总开关"
 
@@ -37,8 +34,8 @@ msgstr "建议勾选本项"
 msgid "No 802.1x heart beat and cancel alarm(Generally NOT checked)"
 msgstr "不需802.1x心跳并关闭超时闹钟(一般不勾选,仅小部分移动网络需要)"
 
-msgid "Logs will not be cleared automatically in debug mode(Do not open it for a long time)"
-msgstr "调试模式下将不会自动清空日志（请勿长时间开启）"
+msgid "Logs will not be cleared automatically in debug mode, and the log will be more detailed(Do not open it for a long time)"
+msgstr "调试模式下将不会自动清空日志，并且日志将以更加详细的方式输出（请勿长时间开启）"
 
 msgid "Fill in your 802.1x username"
 msgstr "请填入你的内网账号"

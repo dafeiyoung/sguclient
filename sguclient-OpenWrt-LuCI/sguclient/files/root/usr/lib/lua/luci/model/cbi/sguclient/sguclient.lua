@@ -21,7 +21,7 @@ s.anonymous = true
 enable = s:option(Flag, "enable", translate("Enable"), translate("Main control of SGUClient"))
 enable = s:option(Flag, "autoreconnect", translate("Auto Reconnect"), translate("Suggest enable(Otherwise, the program will only be reconnected five times)"))
 enable = s:option(Flag, "noheartbeat", translate("No 1x Heart Beat"), translate("No 802.1x heart beat and cancel alarm(Generally NOT checked)"))
-enable = s:option(Flag, "debug", translate("Debug mode"), translate("Logs will not be cleared automatically in debug mode(Do not open it for a long time)"))
+enable = s:option(Flag, "debug", translate("Debug mode"), translate("Logs will not be cleared automatically in debug mode, and the log will be more detailed(Do not open it for a long time)"))
 
 name = s:option(Value, "username", translate("1x Username"), translate("Fill in your 802.1x username"))
 pass = s:option(Value, "password", translate("1x Password"), translate("Fill in your 802.1x password"))
@@ -37,7 +37,7 @@ for _, network in pairs(luci.sys.net.devices()) do
         for _, v in pairs(nixio.getifaddrs()) do
             if v.family == "inet" and v.name == network then
                 ifip = v.addr
-                ifname:value(network, translate("%s (%s)" %{ network, ifip }))
+                ifname:value(network, translate("%s (%s)" % { network, ifip }))
             end
         end
     end
@@ -45,7 +45,7 @@ end
 
 local apply = luci.http.formvalue("cbi.apply")
 if apply then
-	io.popen("/etc/init.d/sguclient restart")
+    io.popen("/etc/init.d/sguclient restart")
 end
 
 return m

@@ -36,7 +36,6 @@
 #include <ifaddrs.h>
 
 
-
 #include <getopt.h>
 #include <unistd.h>
 #include "md5.h"
@@ -85,35 +84,55 @@ enum EAPType {
     EAP_FAILURE,
     ERROR,
     EAP_NOTIFICATION,
-    EAP_REQUEST_MD5_KEEP_ALIVE=250
+    EAP_REQUEST_MD5_KEEP_ALIVE = 250
 };
 
 
-void    send_eap_packet(enum EAPType send_type);
-void    show_usage();
-char*   get_md5_digest(const char* str, size_t len);
-void    action_by_eap_type(enum EAPType pType,
+void send_eap_packet(enum EAPType send_type);
+
+void show_usage();
+
+char *get_md5_digest(const char *str, size_t len);
+
+void action_by_eap_type(enum EAPType pType,
                         const struct eap_header *header,
                         const struct pcap_pkthdr *packetinfo,
                         const uint8_t *packet);
-void    init_frames();
-void    init_info();
-void    init_pcap();
-void    get_local_mac();
-void    get_local_ip();
-void    init_arguments(int *argc, char ***argv);
 
-void    fill_password_md5(uint8_t attach_key[], uint8_t eap_id);
+void init_frames();
 
-int     program_running_check();
-void    daemon_init(void);
-void    show_local_info();
+void init_info();
 
-void    printNotification(const struct eap_header *eap_header);
-void    time_out_handler();
-unsigned int    generateRandomPort();
-void    print_hex(uint8_t *array, int count);
-void    DrcomAuthenticationEntry();
-void    get_packet(uint8_t *args, const struct pcap_pkthdr *header,const uint8_t *packet);
+void init_pcap();
+
+void get_local_mac();
+
+void get_local_ip();
+
+void init_arguments(int *argc, char ***argv);
+
+char *getTime();
+
+int debug_log_style;
+
+void fill_password_md5(uint8_t attach_key[], uint8_t eap_id);
+
+int program_running_check();
+
+void daemon_init(void);
+
+void show_local_info();
+
+void printNotification(const struct eap_header *eap_header);
+
+void time_out_handler();
+
+unsigned int generateRandomPort();
+
+void print_hex(uint8_t *array, int count);
+
+void DrcomAuthenticationEntry();
+
+void get_packet(uint8_t *args, const struct pcap_pkthdr *header, const uint8_t *packet);
 
 
