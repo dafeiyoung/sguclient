@@ -46,13 +46,13 @@ extern "C"
 
 #define SHA1_BLOCK_SIZE  64
 
-#define rotl32(x,n)   (((x) << (n)) | ((x) >> (32 - (n))))
-#define rotr32(x,n)   (((x) >> (n)) | ((x) << (32 - (n))))
+#define rotl32(x, n)   (((x) << (n)) | ((x) >> (32 - (n))))
+#define rotr32(x, n)   (((x) >> (n)) | ((x) << (32 - (n))))
 
 #define bswap_32(x) ((rotr32((x), 24) & 0x00ff00ff) | (rotr32((x), 8) & 0xff00ff00))
 
 #if (PLATFORM_BYTE_ORDER == IS_LITTLE_ENDIAN)
-#define bsw_32(p,n) \
+#define bsw_32(p, n) \
     { int _i = (n); while(_i--) ((uint32_t*)(p))[_i] = bswap_32(((uint32_t*)(p))[_i]); }
 #else
 #define bsw_32(p,n)
@@ -68,9 +68,9 @@ extern "C"
 
 #else   /* Discovered by Rich Schroeppel and Colin Plumb   */
 
-#define ch(x,y,z)       ((z) ^ ((x) & ((y) ^ (z))))
-#define parity(x,y,z)   ((x) ^ (y) ^ (z))
-#define maj(x,y,z)      (((x) & (y)) | ((z) & ((x) ^ (y))))
+#define ch(x, y, z)       ((z) ^ ((x) & ((y) ^ (z))))
+#define parity(x, y, z)   ((x) ^ (y) ^ (z))
+#define maj(x, y, z)      (((x) & (y)) | ((z) & ((x) ^ (y))))
 
 #endif
 
@@ -84,79 +84,82 @@ extern "C"
 #ifdef ARRAY
 #define q(v,n)  v[n]
 #else
-#define q(v,n)  v##n
+#define q(v, n)  v##n
 #endif
 
-#define one_cycle(v,a,b,c,d,e,f,k,h)            \
+#define one_cycle(v, a, b, c, d, e, f, k, h)            \
     q(v,e) += rotr32(q(v,a),27) +               \
               f(q(v,b),q(v,c),q(v,d)) + (k) + (h);  \
     q(v,b)  = rotr32(q(v,b), 2)
 
-#define five_cycle(v,f,k,i)                 \
+#define five_cycle(v, f, k, i)                 \
     one_cycle(v, 0,1,2,3,4, f,k,hf(i  ));   \
     one_cycle(v, 4,0,1,2,3, f,k,hf((i)+1));   \
     one_cycle(v, 3,4,0,1,2, f,k,hf((i)+2));   \
     one_cycle(v, 2,3,4,0,1, f,k,hf((i)+3));   \
     one_cycle(v, 1,2,3,4,0, f,k,hf((i)+4))
 
-static void sha1_compile(sha1_ctx ctx[1])
-{   uint32_t    *w = ctx->wbuf;
+static void sha1_compile(sha1_ctx ctx[1]) {
+    uint32_t *w = ctx->wbuf;
 
 #ifdef ARRAY
     uint32_t    v[5];
     memcpy(v, ctx->hash, 5 * sizeof(uint32_t));
 #else
-    uint32_t    v0, v1, v2, v3, v4;
-    v0 = ctx->hash[0]; v1 = ctx->hash[1];
-    v2 = ctx->hash[2]; v3 = ctx->hash[3];
+    uint32_t v0, v1, v2, v3, v4;
+    v0 = ctx->hash[0];
+    v1 = ctx->hash[1];
+    v2 = ctx->hash[2];
+    v3 = ctx->hash[3];
     v4 = ctx->hash[4];
 #endif
 
 #define hf(i)   w[i]
 
-    five_cycle(v, ch, 0x5a827999,  0);
-    five_cycle(v, ch, 0x5a827999,  5);
+    five_cycle(v, ch, 0x5a827999, 0);
+    five_cycle(v, ch, 0x5a827999, 5);
     five_cycle(v, ch, 0x5a827999, 10);
-    one_cycle(v,0,1,2,3,4, ch, 0x5a827999, hf(15)); \
+    one_cycle(v, 0, 1, 2, 3, 4, ch, 0x5a827999, hf(15)); \
 
 #undef  hf
 #define hf(i) (w[(i) & 15] = rotl32(                    \
                  w[((i) + 13) & 15] ^ w[((i) + 8) & 15] \
                ^ w[((i) +  2) & 15] ^ w[(i) & 15], 1))
 
-    one_cycle(v,4,0,1,2,3, ch, 0x5a827999, hf(16));
-    one_cycle(v,3,4,0,1,2, ch, 0x5a827999, hf(17));
-    one_cycle(v,2,3,4,0,1, ch, 0x5a827999, hf(18));
-    one_cycle(v,1,2,3,4,0, ch, 0x5a827999, hf(19));
+    one_cycle(v, 4, 0, 1, 2, 3, ch, 0x5a827999, hf(16));
+    one_cycle(v, 3, 4, 0, 1, 2, ch, 0x5a827999, hf(17));
+    one_cycle(v, 2, 3, 4, 0, 1, ch, 0x5a827999, hf(18));
+    one_cycle(v, 1, 2, 3, 4, 0, ch, 0x5a827999, hf(19));
 
-    five_cycle(v, parity, 0x6ed9eba1,  20);
-    five_cycle(v, parity, 0x6ed9eba1,  25);
-    five_cycle(v, parity, 0x6ed9eba1,  30);
-    five_cycle(v, parity, 0x6ed9eba1,  35);
+    five_cycle(v, parity, 0x6ed9eba1, 20);
+    five_cycle(v, parity, 0x6ed9eba1, 25);
+    five_cycle(v, parity, 0x6ed9eba1, 30);
+    five_cycle(v, parity, 0x6ed9eba1, 35);
 
-    five_cycle(v, maj, 0x8f1bbcdc,  40);
-    five_cycle(v, maj, 0x8f1bbcdc,  45);
-    five_cycle(v, maj, 0x8f1bbcdc,  50);
-    five_cycle(v, maj, 0x8f1bbcdc,  55);
+    five_cycle(v, maj, 0x8f1bbcdc, 40);
+    five_cycle(v, maj, 0x8f1bbcdc, 45);
+    five_cycle(v, maj, 0x8f1bbcdc, 50);
+    five_cycle(v, maj, 0x8f1bbcdc, 55);
 
-    five_cycle(v, parity, 0xca62c1d6,  60);
-    five_cycle(v, parity, 0xca62c1d6,  65);
-    five_cycle(v, parity, 0xca62c1d6,  70);
-    five_cycle(v, parity, 0xca62c1d6,  75);
+    five_cycle(v, parity, 0xca62c1d6, 60);
+    five_cycle(v, parity, 0xca62c1d6, 65);
+    five_cycle(v, parity, 0xca62c1d6, 70);
+    five_cycle(v, parity, 0xca62c1d6, 75);
 
 #ifdef ARRAY
     ctx->hash[0] += v[0]; ctx->hash[1] += v[1];
     ctx->hash[2] += v[2]; ctx->hash[3] += v[3];
     ctx->hash[4] += v[4];
 #else
-    ctx->hash[0] += v0; ctx->hash[1] += v1;
-    ctx->hash[2] += v2; ctx->hash[3] += v3;
+    ctx->hash[0] += v0;
+    ctx->hash[1] += v1;
+    ctx->hash[2] += v2;
+    ctx->hash[3] += v3;
     ctx->hash[4] += v4;
 #endif
 }
 
-void sha1_begin(sha1_ctx ctx[1])
-{
+void sha1_begin(sha1_ctx ctx[1]) {
     ctx->count[0] = ctx->count[1] = 0;
     ctx->hash[0] = 0x67452301;
     ctx->hash[1] = 0xefcdab89;
@@ -168,29 +171,32 @@ void sha1_begin(sha1_ctx ctx[1])
 /* SHA1 hash data in an array of bytes into hash buffer and */
 /* call the hash_compile function as required.              */
 
-void sha1_hash(const unsigned char data[], unsigned long len, sha1_ctx ctx[1])
-{   uint32_t pos = (uint32_t)(ctx->count[0] & SHA1_MASK),
+void sha1_hash(const unsigned char data[], unsigned long len, sha1_ctx ctx[1]) {
+    uint32_t pos = (uint32_t)(ctx->count[0] & SHA1_MASK),
             space = SHA1_BLOCK_SIZE - pos;
     const unsigned char *sp = data;
 
-    if((ctx->count[0] += len) < len)
+    if ((ctx->count[0] += len) < len)
         ++(ctx->count[1]);
 
-    while(len >= space)     /* tranfer whole blocks if possible  */
+    while (len >= space)     /* tranfer whole blocks if possible  */
     {
-        memcpy(((unsigned char*)ctx->wbuf) + pos, sp, space);
-        sp += space; len -= space; space = SHA1_BLOCK_SIZE; pos = 0;
+        memcpy(((unsigned char *) ctx->wbuf) + pos, sp, space);
+        sp += space;
+        len -= space;
+        space = SHA1_BLOCK_SIZE;
+        pos = 0;
         bsw_32(ctx->wbuf, SHA1_BLOCK_SIZE >> 2)
         sha1_compile(ctx);
     }
 
-    memcpy(((unsigned char*)ctx->wbuf) + pos, sp, len);
+    memcpy(((unsigned char *) ctx->wbuf) + pos, sp, len);
 }
 
 /* SHA1 final padding and digest calculation  */
 
-void sha1_end(unsigned char hval[], sha1_ctx ctx[1])
-{   uint32_t    i = (uint32_t)(ctx->count[0] & SHA1_MASK);
+void sha1_end(unsigned char hval[], sha1_ctx ctx[1]) {
+    uint32_t i = (uint32_t)(ctx->count[0] & SHA1_MASK);
 
     /* put bytes in the buffer in an order in which references to   */
     /* 32-bit words will put bytes with lower addresses into the    */
@@ -207,16 +213,14 @@ void sha1_end(unsigned char hval[], sha1_ctx ctx[1])
     /* we need 9 or more empty positions, one for the padding byte  */
     /* (above) and eight for the length count. If there is not      */
     /* enough space, pad and empty the buffer                       */
-    if(i > SHA1_BLOCK_SIZE - 9)
-    {
-        if(i < 60) ctx->wbuf[15] = 0;
+    if (i > SHA1_BLOCK_SIZE - 9) {
+        if (i < 60) ctx->wbuf[15] = 0;
         sha1_compile(ctx);
         i = 0;
-    }
-    else    /* compute a word index for the empty buffer positions  */
+    } else    /* compute a word index for the empty buffer positions  */
         i = (i >> 2) + 1;
 
-    while(i < 14) /* and zero pad all but last two positions        */
+    while (i < 14) /* and zero pad all but last two positions        */
         ctx->wbuf[i++] = 0;
 
     /* the following 32-bit length fields are assembled in the      */
@@ -229,14 +233,16 @@ void sha1_end(unsigned char hval[], sha1_ctx ctx[1])
 
     /* extract the hash value as bytes in case the hash buffer is   */
     /* misaligned for 32-bit words                                  */
-    for(i = 0; i < SHA1_DIGEST_SIZE; ++i)
-        hval[i] = (unsigned char)(ctx->hash[i >> 2] >> (8 * (~i & 3)));
+    for (i = 0; i < SHA1_DIGEST_SIZE; ++i)
+        hval[i] = (unsigned char) (ctx->hash[i >> 2] >> (8 * (~i & 3)));
 }
 
-void sha1(const unsigned char data[],  unsigned long len,unsigned char hval[])
-{   sha1_ctx    cx[1];
+void sha1(const unsigned char data[], unsigned long len, unsigned char hval[]) {
+    sha1_ctx cx[1];
 
-    sha1_begin(cx); sha1_hash(data, len, cx); sha1_end(hval, cx);
+    sha1_begin(cx);
+    sha1_hash(data, len, cx);
+    sha1_end(hval, cx);
 }
 
 #if defined(__cplusplus)

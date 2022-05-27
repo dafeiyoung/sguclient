@@ -7,7 +7,7 @@ clean_log() {
 
   local logsnum=$(cat $LOG_FILE 2>/dev/null | wc -l)
   [ "$logsnum" -gt 200 ] && {
-    echo "$(date "+%Y-%m-%d %H:%M:%S") 日志文件过长，清空处理！" >$LOG_FILE
+    echo -e "$(date "+%Y-%m-%d %H:%M:%S")\t日志文件过长，清空处理！" >$LOG_FILE
   }
 
 }
@@ -19,14 +19,14 @@ if [ -f "/var/run/sgud.sh.pid" ]; then
   echo "pid文件存在."
 else
   echo "pid文件不存在,手动创建pid."
-	touch /var/run/sgud.sh.pid  >/dev/null 2>&1
-	pgrep sgud.sh -f >/var/run/sgud.sh.pid 2>&1 &
+  touch /var/run/sgud.sh.pid >/dev/null 2>&1
+  pgrep sgud.sh -f >/var/run/sgud.sh.pid 2>&1 &
 fi
 
 autorestart=$(echo "$@" | grep "\-auto")
 debug=$(echo "$@" | grep "\-debug")
 
-#调试模式下清空日志(防止日志爆满)
+#调试模式下每次启动都清空一次日志(便于查看日志)
 if [ -n "$debug" ]; then
   rm -f $LOG_FILE >/dev/null 2>&1
   echo "用户启动调试模式,日志清空一次." >/dev/null 2>&1
@@ -40,11 +40,11 @@ while true; do
   sleep 30
   process=$(pgrep sguclient)
   # 如果用户选择开启重连,那么sgud.sh会保活sguclient
-  if [ -n "$autorestart" ]; then   #不可以使用[[]],因为那是bash的扩展
+  if [ -n "$autorestart" ]; then #不可以使用[[]],因为那是bash的扩展
     # 如果存在"sgud.sh.pid"说明并未调用stop_service或者procd守护进程并未退出，应继续保活sguclient
     if [ -z "$process" ]; then
       if [ -f "/var/run/sgud.sh.pid" ]; then
-        /bin/sguclient "$@"  1>>$LOG_FILE 2>&1 &
+        /bin/sguclient "$@" 1>>$LOG_FILE 2>&1 &
       fi
     fi
   else # 如果不需要重启，一旦sguclient挂掉了，也关闭sgud守护进程

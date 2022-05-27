@@ -37,7 +37,7 @@ for _, network in pairs(luci.sys.net.devices()) do
         for _, v in pairs(nixio.getifaddrs()) do
             if v.family == "inet" and v.name == network then
                 ifip = v.addr
-                ifname:value(network, translate("%s (%s)" %{ network, ifip }))
+                ifname:value(network, translate("%s (%s)" % { network, ifip }))
             end
         end
     end
@@ -45,7 +45,7 @@ end
 
 local apply = luci.http.formvalue("cbi.apply")
 if apply then
-	io.popen("/etc/init.d/sguclient restart")
+    io.popen("/etc/init.d/sguclient restart")
 end
 
 return m
