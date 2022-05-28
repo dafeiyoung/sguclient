@@ -129,16 +129,12 @@ void printNotification(const struct eap_header *eap_header) {
  * =====================================================================================
  */
 void printCTCCNotification(const struct eap_header *eap_header) {
-    printf("%s\tAnalysis error: ", getTime());
+    printf("%s\tError Report: ", getTime());
     char *buf = (char *) eap_header;  //拷贝一份EAP/EAPOL数据包供分析
-    int i = 0;
-    while ( i<10 ){ //指针在第十次循环后输出提示消息的第二个字符，由于第一个字符有重复的，于是使用第二个去做判断
-        buf++;
-        i++;
-    }
+    buf = buf + 10; //指针在第十次循环后输出提示消息的第二个字符，由于第一个字符有重复的，于是使用第二个去做判断
     //以下四种情况是目前电信已知的提示信息,
     if (*buf == 's'){ //userid error
-        printf("The username or password is worry.\n");
+        printf("The username or password is wrong.\n");
     } else if (*buf == 'n'){    //In use !
         printf("The account is in use, please check whether the account is correct.\n");
     } else if (*buf == 'a'){    //Mac, IP, NASip, PORT err(11)!
