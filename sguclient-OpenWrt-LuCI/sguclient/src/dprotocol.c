@@ -427,7 +427,7 @@ void FillCheckSum(uint8 *ChallengeFromU8, uint16 Length, uint8 *CheckSum) {
 #if DRCOM_DEBUG_ON
     printf("Challange from u8:\n");
     for (int i = 0; i < 4; ++i) {
-        printf("0x%.2x  .",*((uint8*)ChallengeFromU8 + i));
+        printf("0x%.2x ",*((uint8*)ChallengeFromU8 + i));
     }
     printf("\n\n");
 #endif
@@ -475,7 +475,7 @@ void FillCheckSum(uint8 *ChallengeFromU8, uint16 Length, uint8 *CheckSum) {
 
     } else if (type == 0) {
 
-        printf("WARNING:收到旧版U8质询值！ \n");
+        printf("WARNING:收到旧版U8质询值！\n");
         //尽管这不应该发生，但此处为了保持一定的兼容性，仍然保留了这两句
         //要注意的是，旧版的校验方式和整个U244的内容有关，详见drcom_crc32函数
         *((uint32 *) CheckSum + 0) = checkCPULittleEndian() == 0 ? big2little_32(20000711) : 20000711;
@@ -645,7 +645,7 @@ int SendU38HeartBeat() {
 /*
     for (int i = 0; i < 38; ++i) {
         if (i && i % 7 == 0)printf("\n");
-        printf("0x%.2x  ", pkt_data[i]);
+        printf("0x%.2x ", pkt_data[i]);
     }*/
 
     int revLen =
@@ -789,7 +789,7 @@ void U40ResponseParser() {
         //这种包可能是用来更新mydll用的，但是发过来的dll不完整.当然最好不要完整发过来，那个文件看起来不小
         //正常来讲如果不主动发U40-5或发送含有错误版本的U40-1/3时是不会进入这里的
         memcpy(DrInfo.MyDllVer, revData + 28, 4);//所以这里还是更新一下MyDllVer比较好
-        printf("Got dll from U40. Ignored .\n");
+        printf("%s\tGot dll from U40. Ignored.\n",getTime());
 
     } else {
         memcpy(DrInfo.ChallengeTimer, revData + 16, 2);// 只有不是File的时候revData[16:19]才是时间
@@ -807,7 +807,7 @@ void U40ResponseParser() {
  * =====================================================================================
  */
 static void perrorAndSleep(char *str) {
-    printf("%s.\n", str);
+    printf("%s\t%s\n", getTime(),str);
     strcpy(dstatusMsg, str);
     dstatus = DOFFLINE;
     sleep(20);
@@ -822,7 +822,7 @@ static void perrorAndSleep(char *str) {
  * =====================================================================================
  */
 static void printAll(char *str) {
-    printf("drcom %s.\n", str);
+    printf("%s\tdrcom %s\n", getTime(),str);
     strcpy(dstatusMsg, str);
 }
 

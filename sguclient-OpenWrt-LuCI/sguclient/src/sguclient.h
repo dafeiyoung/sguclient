@@ -125,6 +125,8 @@ void show_local_info();
 
 void printNotification(const struct eap_header *eap_header);
 
+void printCTCCNotification(const struct eap_header *eap_header);
+
 void time_out_handler();
 
 unsigned int generateRandomPort();
@@ -134,5 +136,7 @@ void print_hex(uint8_t *array, int count);
 void DrcomAuthenticationEntry();
 
 void get_packet(uint8_t *args, const struct pcap_pkthdr *header, const uint8_t *packet);
+
+void exit_sguclientl();
 
 

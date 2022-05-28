@@ -98,19 +98,56 @@ pthread_t dtid;  //drcom线程的pid
  * =====================================================================================
  */
 void printNotification(const struct eap_header *eap_header) {
+    // 如果是电信情况且没有设置调试模式，则由之前分析出来的情况去输出错误信息
+    if (isp_type == 'D'){
+        if ( !debug_log_style ){
+            printCTCCNotification(eap_header);
+            return;
+        }
+    }
+    printf("%s\tGot notification: ", getTime());
+    // 以下是初代 dafeiyoung 写的，未做修改
     char *buf = (char *) eap_header;  //拷贝一份EAP/EAPOL数据包供打印
     int i = 0;
-    printf("%s\tGot notification: ", getTime());
     for (i = 0; i < 46; ++i)    //准备打印整个EAP/EAPOL数据包
     {
         if ((*buf >= 32) && (*buf <= 127))  //printable
         {
-            printf("%c.", *buf);
+            printf("%c", *buf);
         }
         buf++;
     }
-
     printf("\n");
+}
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name:  printCTCCNotification
+ *  Description:  通过分析802.1x的notification信息分析出错误（仅电信部分，移动部分没有条件适配）
+ *                截止2022/05/28的数据包适配
+ *        Input:  * eap_header: 指向EAP/EAPOL数据包的结构体的指针
+ *       Output:  无
+ * =====================================================================================
+ */
+void printCTCCNotification(const struct eap_header *eap_header) {
+    printf("%s\tAnalysis error: ", getTime());
+    char *buf = (char *) eap_header;  //拷贝一份EAP/EAPOL数据包供打印
+    int i = 0;
+    while ( i<10 ){ //指针在第十次循环后输出提示消息的第二个字符，由于第一个字符有重复的，于是使用第二个去做判断
+        buf++;
+        i++;
+    }
+    //以下四种情况是目前电信已知的提示信息,
+    if (*buf == 's'){ //userid error
+        printf("The username or password is worry.\n");
+    } else if (*buf == 'n'){    //In use !
+        printf("The account is in use, please check whether the account is correct.\n");
+    } else if (*buf == 'a'){    //Mac, IP, NASip, PORT err(11)!
+        printf("Please check whether the IP address and MAC Settings are correct, you can clone the local MAC, or ask the network administrator to bind the MAC address.\n");
+    } else if (*buf == 'P'){    //IP conflict !
+        printf("IP conflict, please check whether the IP address Settings are correct.\n");
+    } else{
+        printf("An unknown error, please turn on debug mode to see detailed errors.\n");
+    }
 }
 
 /*
@@ -141,7 +178,7 @@ void print_hex(uint8_t *array, int count) {
     for (i = 0; i < count; i++) {
         if (!(i % 16))
             printf("\n");
-        printf("%02x  .", array[i]);
+        printf("%02x ", array[i]);
     }
     printf("\n");
 }
@@ -194,9 +231,22 @@ void DrcomAuthenticationEntry() {
         ret = pthread_create(&dtid, NULL, DrComServerDaemon, NULL);
         if (0 != ret) {
             perror("Failed Creating Drcom Thread!");
-            exit(EXIT_FAILURE);
+            exit_sguclientl();
         } else printf("%s\tDrcom Thread Successfully Created.\n", getTime());
     } else return;
+}
+
+/*
+ * ===  FUNCTION  ======================================================================
+ *         Name:  exit_unNormal
+ *  Description:  处理程序错误后的日志输出
+ *        Input:  无
+ *       Output:  无
+ * =====================================================================================
+ */
+void exit_sguclientl() {
+    fprintf(stdout, "\n\n%s\tInfo: SGUClient exits!\n\n", getTime());
+    exit(EXIT_FAILURE);
 }
 
 
@@ -221,7 +271,7 @@ void reStartDrcom(int sleep_time_sec) {
     int ret0 = pthread_cancel(dtid);//杀死线程
     if (0 != ret0) {
         perror("Failed Canceling Drcom Thread!");
-        exit(EXIT_FAILURE);
+        exit_sguclientl();
     } else printf("%s\tDrcom Thread Successfully Canceled.\n", getTime());
 
     pthread_join(dtid, (void **) &ret0);//线程回收
@@ -229,7 +279,7 @@ void reStartDrcom(int sleep_time_sec) {
     int ret1 = pthread_create(&dtid, NULL, DrComServerDaemon, NULL);
     if (0 != ret1) {
         perror("Failed Creating Drcom Thread!");
-        exit(EXIT_FAILURE);
+        exit_sguclientl();
     } else printf("%s\tDrcom Thread Successfully Created.\n", getTime());
 
     sleep(sleep_time_sec);
@@ -249,7 +299,7 @@ void reStartDrcom(int sleep_time_sec) {
 void auto_reconnect(int sleep_time_sec, char type) {   //会有三种情况进入此处，一是timeout，二和三分别为移动的EAP_Failure
     if (type == 'T') {   //如果是time_out
 
-        printf("%s\tSGUClient wait package response time out! Check your physical network connection!\n", getTime());
+        printf("%s\tSGUClient wait package response time out! Check your physical network connection and Program config!\n", getTime());
         if (auto_rec) {    //用户启动重连，程序会一直重连
 
             printf("%s\tThe user enabled automatic reconnection, program will automatically reconnect in 5 secs...\n",
@@ -263,8 +313,7 @@ void auto_reconnect(int sleep_time_sec, char type) {   //会有三种情况进�
 
             if (reconnect_times >= 5) {   //timeout和EAP_Failure重连总次数超过5次
                 printf("\n%s\tSGUClient tried reconnect more than 5 times, and all failed.\n", getTime());
-                printf("%s\tSGUClient exits now!\n\n", getTime());
-                exit(EXIT_FAILURE);
+                exit_sguclientl();
             } else {
                 printf("%s\tTo prevent accidental errors, program will automatically reconnect in 5 secs...\n",
                        getTime());
@@ -301,8 +350,7 @@ void auto_reconnect(int sleep_time_sec, char type) {   //会有三种情况进�
             if (reconnect_times >= 5) {   //timeout和EAP_Failure重连总次数超过5次
                 fprintf(stdout, "\n%s\tInfo: SGUClient tried reconnect more than 5 times, and all failed.\n",
                         getTime());
-                fprintf(stdout, "%s\tInfo: SGUClient exits now!\n\n", getTime());
-                exit(EXIT_FAILURE);
+                exit_sguclientl();
             } else {
                 fprintf(stdout,
                         "%s\tInfo: To prevent accidental errors, program will automatically reconnect in 5 secs...\n",
@@ -443,13 +491,14 @@ enum EAPType get_eap_type(const struct eap_header *eap_header) {
             return EAP_FAILURE;
     }
 
-    fprintf(stderr, "%s\tIMPORTANT: Unknown Package : eap_t:      %02x.\n"
-                    "                               eap_id: %02x.\n"
-                    "                               eap_op:     %02x.\n",
+    fprintf(stderr, "%s\tIMPORTANT: Unknown Package :   eap_t:      %02x \n"
+                    "                                   eap_id: %02x \n"
+                    "                                   eap_op:     %02x \n",
             getTime(),
-            eap_header->eap_t, eap_header->eap_id,
+            eap_header->eap_t,
+            eap_header->eap_id,
             eap_header->eap_op);
-    exit(EXIT_FAILURE);
+    exit_sguclientl();
     return ERROR;
 }
 
@@ -522,14 +571,15 @@ void action_by_eap_type(enum EAPType pType,
 
             case EAP_NOTIFICATION:
                 printNotification(header);
-                exit(EXIT_FAILURE);
+                exit_sguclientl();
                 break;
+
             default:
                 return;
         }
     } else if (isp_type == 'Y')               //移动部分
     {
-        printf("%s\t<CMCC>Received PackType: %d.\n", getTime(), pType);
+        printf("%s\t<CMCC>Received PackType: %d .\n", getTime(), pType);
         switch (pType) {
             case EAP_SUCCESS:
                 alarm(0);  //取消闹钟
@@ -580,7 +630,7 @@ void action_by_eap_type(enum EAPType pType,
 
             case EAP_NOTIFICATION:
                 printNotification(header);
-                exit(EXIT_FAILURE);
+                exit_sguclientl();
                 break;
 
             default:
@@ -1002,12 +1052,12 @@ void init_info() {
     if (username == NULL || password == NULL) {
         fprintf(stderr, "Error: NO Username(-u) or Password(-p) promoted.\n"
                         "Try sguclient --help for usage.\n");
-        exit(EXIT_FAILURE);
+        exit_sguclientl();
     }
     if (dev == NULL) {
         fprintf(stderr, "Error: NO device (--device) promoted.\n"
                         "Try sguclient --help for usage.\n");
-        exit(EXIT_FAILURE);
+        exit_sguclientl();
     }
 
     username_length = strlen(username);
@@ -1031,13 +1081,13 @@ void init_pcap() {
 
     if (pcapHandle == NULL) {
         fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
-        exit(EXIT_FAILURE);
+        exit_sguclientl();
     }
 
     /* make sure we're capturing on an Ethernet device [2] */
     if (pcap_datalink(pcapHandle) != DLT_EN10MB) {
         fprintf(stderr, "%s is not an Ethernet\n", dev);
-        exit(EXIT_FAILURE);
+        exit_sguclientl();
     }
 
     /* construct the filter string */
@@ -1051,14 +1101,14 @@ void init_pcap() {
     if (pcap_compile(pcapHandle, &fp, filter_exp, 1, 0) == -1) {
         fprintf(stderr, "Couldn't parse filter %s: %s\n",
                 filter_exp, pcap_geterr(pcapHandle));
-        exit(EXIT_FAILURE);
+        exit_sguclientl();
     }
 
     /* apply the compiled filter */
     if (pcap_setfilter(pcapHandle, &fp) == -1) {
         fprintf(stderr, "Couldn't install filter %s: %s\n",
                 filter_exp, pcap_geterr(pcapHandle));
-        exit(EXIT_FAILURE);
+        exit_sguclientl();
     }
     pcap_freecode(&fp);
 
@@ -1077,14 +1127,14 @@ void get_local_mac() {
     int sock;
     if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         perror("socket");
-        exit(EXIT_FAILURE);
+        exit_sguclientl();
     }
     strncpy(ifr.ifr_name, dev, sizeof(ifr.ifr_name));
     ifr.ifr_name[sizeof(ifr.ifr_name) - 1] = '\0';
 
     if (ioctl(sock, SIOCGIFHWADDR, &ifr) < 0) {
         perror("ioctl");
-        exit(EXIT_FAILURE);
+        exit_sguclientl();
     }
     memcpy(local_mac, ifr.ifr_hwaddr.sa_data, ETHER_ADDR_LEN);
 }
@@ -1243,11 +1293,11 @@ void init_arguments(int *argc, char ***argv) {
             case '?':
                 if (optopt == 'u' || optopt == 'p' || optopt == 'g' || optopt == 'd')
                     fprintf(stderr, "Option -%c requires an argument.\n", optopt);
-                exit(EXIT_FAILURE);
+                exit_sguclientl();
                 break;
             default:
-                fprintf(stderr, "Unknown option character `\\x%x'.\n", c);
-                exit(EXIT_FAILURE);
+                fprintf(stderr, "Unknown option character `\\x%x'\n", c);
+                exit_sguclientl();
         }
     }
 }
