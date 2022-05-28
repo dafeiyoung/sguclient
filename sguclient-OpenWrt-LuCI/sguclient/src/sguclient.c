@@ -130,7 +130,7 @@ void printNotification(const struct eap_header *eap_header) {
  */
 void printCTCCNotification(const struct eap_header *eap_header) {
     printf("%s\tAnalysis error: ", getTime());
-    char *buf = (char *) eap_header;  //拷贝一份EAP/EAPOL数据包供打印
+    char *buf = (char *) eap_header;  //拷贝一份EAP/EAPOL数据包供分析
     int i = 0;
     while ( i<10 ){ //指针在第十次循环后输出提示消息的第二个字符，由于第一个字符有重复的，于是使用第二个去做判断
         buf++;
