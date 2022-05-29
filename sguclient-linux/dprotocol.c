@@ -97,7 +97,7 @@ void init_logStyle() {
         DMSG_LoginU244 = "Drcom: Got U244 login response, U244 login success.\n";
         DMSG_SendU40_1_Fail = "Drcom: U40 phase 1 error.\n";
         DMSG_GotU40_2 = "Drcom: Got U40 response phase 2.\n";
-        DMSG_FinishU40 = "Drcom: Got U40 response phase 4, U40 cycle done.\n";
+        DMSG_FinishU40 = "Drcom: Got U40 response phase 4, U40 cycle done!\n";
         DMSG_StartInterval = "Drcom: Waiting for 8s before sending next U8.\n";
         DMSG_DoneInterval = "Drcom: 8s Done.\n";
         DMSG_GotU38 = "Drcom: Got U38 response. Keep alive cycle done!\n";
