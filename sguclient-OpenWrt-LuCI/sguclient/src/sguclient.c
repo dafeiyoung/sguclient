@@ -511,7 +511,7 @@ void action_by_eap_type(enum EAPType pType,
                         const uint8_t *packet) {
     if (isp_type == 'D')                //电信部分
     {
-        printf("%s\t<CTCC>Received PackType: %d.\n", getTime(), pType);
+        printf("\n%s\t<CTCC>Received PackType: %d.\n", getTime(), pType);
         switch (pType) {
             case EAP_SUCCESS:
                 alarm(0);  //取消闹钟
@@ -575,7 +575,7 @@ void action_by_eap_type(enum EAPType pType,
         }
     } else if (isp_type == 'Y')               //移动部分
     {
-        printf("%s\t<CMCC>Received PackType: %d .\n", getTime(), pType);
+        printf("\n%s\t<CMCC>Received PackType: %d .\n", getTime(), pType);
         switch (pType) {
             case EAP_SUCCESS:
                 alarm(0);  //取消闹钟

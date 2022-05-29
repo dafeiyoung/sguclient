@@ -26,11 +26,8 @@ fi
 autorestart=$(echo "$@" | grep "\-auto")
 debug=$(echo "$@" | grep "\-debug")
 
-#调试模式下每次启动都清空一次日志(便于查看日志)
-if [ -n "$debug" ]; then
-  rm -f $LOG_FILE >/dev/null 2>&1
-  echo "用户启动调试模式,日志清空一次." >/dev/null 2>&1
-fi
+# 每次启动sgu时删除旧日志(便于查看新日志)
+rm -f $LOG_FILE >/dev/null 2>&1
 
 # 首次启动sguclient
 /bin/sguclient "$@" 1>>$LOG_FILE 2>&1 &
