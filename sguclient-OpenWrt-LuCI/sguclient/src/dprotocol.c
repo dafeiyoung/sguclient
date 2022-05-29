@@ -425,7 +425,7 @@ void FillCheckSum(uint8 *ChallengeFromU8, uint16 Length, uint8 *CheckSum) {
     Length += 4;
 
 #if DRCOM_DEBUG_ON
-    printf("Challange from u8:\n");
+    printf("Info: Challange from u8:\n");
     for (int i = 0; i < 4; ++i) {
         printf("0x%.2x ",*((uint8*)ChallengeFromU8 + i));
     }
@@ -789,7 +789,7 @@ void U40ResponseParser() {
         //这种包可能是用来更新mydll用的，但是发过来的dll不完整.当然最好不要完整发过来，那个文件看起来不小
         //正常来讲如果不主动发U40-5或发送含有错误版本的U40-1/3时是不会进入这里的
         memcpy(DrInfo.MyDllVer, revData + 28, 4);//所以这里还是更新一下MyDllVer比较好
-        printf("%s\tGot dll from U40. Ignored.\n",getTime());
+        printf("%s\tInfo: Got dll from U40. Ignored.\n",getTime());
 
     } else {
         memcpy(DrInfo.ChallengeTimer, revData + 16, 2);// 只有不是File的时候revData[16:19]才是时间
@@ -807,7 +807,7 @@ void U40ResponseParser() {
  * =====================================================================================
  */
 static void perrorAndSleep(char *str) {
-    printf("%s\t%s\n", getTime(),str);
+    printf("%s\tError Report: %s\n", getTime(),str);
     strcpy(dstatusMsg, str);
     dstatus = DOFFLINE;
     sleep(20);
@@ -822,7 +822,7 @@ static void perrorAndSleep(char *str) {
  * =====================================================================================
  */
 static void printAll(char *str) {
-    printf("%s\tdrcom %s\n", getTime(),str);
+    printf("%s\tError Report: drcom %s\n", getTime(),str);
     strcpy(dstatusMsg, str);
 }
 
