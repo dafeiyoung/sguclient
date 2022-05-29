@@ -94,7 +94,7 @@ void init_logStyle() {
         DMSG_SendU38 = "Drcom: Sending heart beat U38.\n";
         DMSG_SendU38_Fail = "Drcom: Heart beat U38 failed.\n";
         DMSG_SentU38 = "Drcom: Sent heart beat U38.\n";
-        DMSG_LoginU244 = "Drcom: Got U244 login response, U244 login success.\n";
+        DMSG_LoginU244 = "Drcom: Got U244 login response, U244 login success!\n";
         DMSG_SendU40_1_Fail = "Drcom: U40 phase 1 error.\n";
         DMSG_GotU40_2 = "Drcom: Got U40 response phase 2.\n";
         DMSG_FinishU40 = "Drcom: Got U40 response phase 4, U40 cycle done!\n";
