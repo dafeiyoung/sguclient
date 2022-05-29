@@ -179,7 +179,7 @@ int main(int argc, char **argv) {
     //检测程序的副本运行（文件锁）
     int ins_pid;
     if ((ins_pid = program_running_check())) {
-        fprintf(stderr, "%s\t@@ERROR: SGUClient Already Running with PID %d .\n", getTime(), ins_pid);
+        fprintf(stderr, "%s\tError Report: SGUClient Already Running with PID %d .\n", getTime(), ins_pid);
         fprintf(stdout, "%s\tInfo: run 'sudo kill %d' or %s -k before re-running SGUClient'.\n\n", getTime(), ins_pid,
                 argv[0]);
         exit_sguclientl();
