@@ -36,7 +36,7 @@ unsigned int clientPort;
 #if DRCOM_DEBUG_ON > 0
 void print_hex_drcom(char *hex, int len)
 {
-    printf("Info: print_hex_drcom.\n");
+    printf("Info: print_hex_drcom:\n");
     for (int i = 0; i < len; ++i) {
         if (i&&i%16==0){ printf("\n");}
         printf("%.2x ",*((uint8*)hex + i));

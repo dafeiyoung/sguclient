@@ -137,6 +137,6 @@ void DrcomAuthenticationEntry();
 
 void get_packet(uint8_t *args, const struct pcap_pkthdr *header, const uint8_t *packet);
 
-void exit_sguclientl();
+void exit_sguclient();
 
 
