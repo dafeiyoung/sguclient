@@ -7,7 +7,7 @@ clean_log() {
 
   local logsnum=$(cat $LOG_FILE 2>/dev/null | wc -l)
   [ "$logsnum" -gt 200 ] && {
-    log=$(tail -n 10 $LOG_FILE 2>&1) #清空日志时，保留十行日志
+    log=$(tail -n 10 $LOG_FILE 2>&1) # 清空日志时，保留十行日志
     echo -e "$(date "+%Y-%m-%d %H:%M:%S")\t日志文件过长，清空处理！\n\n$log\c" >$LOG_FILE
   }
 
@@ -51,7 +51,7 @@ while true; do
     fi
   fi
 
-  #清理日志
+  # 清理日志
   if [ -n "$debug" ]; then
     echo "用户启动调试模式,日志将不会自动清空." >/dev/null 2>&1
   else
