@@ -93,7 +93,7 @@ int program_running_check() {
     //尝试获得文件锁
     if (fcntl(hLockFile, F_GETLK, &fl) < 0) {
         perror("fcntl_get");
-        exit_sguclientl();
+        exit_sguclient();
     }
 
     if (exit_flag) {
@@ -104,7 +104,7 @@ int program_running_check() {
         } else
             fprintf(stderr, "%s\tInfo: NO SGUClient Running.\n", getTime());
         close(hLockFile);
-        exit_sguclientl();
+        exit_sguclient();
     }
 
     //没有锁，则给文件加锁，否则返回锁着文件的进程pid
@@ -182,7 +182,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "%s\tError Report: SGUClient Already Running with PID %d .\n", getTime(), ins_pid);
         fprintf(stdout, "%s\tInfo: run 'sudo kill %d' or %s -k before re-running SGUClient'.\n\n", getTime(), ins_pid,
                 argv[0]);
-        exit_sguclientl();
+        exit_sguclient();
     }
 
     //初始化用户信息

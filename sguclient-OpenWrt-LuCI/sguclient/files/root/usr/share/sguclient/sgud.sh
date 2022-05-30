@@ -27,8 +27,12 @@ fi
 autorestart=$(echo "$@" | grep "\-auto")
 debug=$(echo "$@" | grep "\-debug")
 
-# 每次启动sgu时删除旧日志(便于查看新日志)
-rm -f $LOG_FILE >/dev/null 2>&1
+# 每次启动sgu时保留20行旧日志(便于查看新日志)
+logsnum=$(cat $LOG_FILE 2>/dev/null | wc -l)
+[ "$logsnum" -gt 20 ] && {
+  log=$(tail -n 20 $LOG_FILE 2>&1) # 保留20行日志
+  echo -e "$log\n\n" >$LOG_FILE
+}
 
 # 首次启动sguclient
 /bin/sguclient "$@" 1>>$LOG_FILE 2>&1 &

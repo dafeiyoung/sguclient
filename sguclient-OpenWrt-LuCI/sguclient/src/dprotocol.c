@@ -182,7 +182,7 @@ int SendU8GetChallenge() {
         return -1;
     U8ResponseParser();
 #if DRCOM_DEBUG_ON > 0
-    print_hex_drcom(drcom_challenge, 4);
+    print_hex_drcom(DrInfo.ChallengeTimer, 4);
 #endif
 
     return 0;
@@ -395,7 +395,7 @@ int SendU244Login() {
 
 #if DRCOM_DEBUG_ON > 0
     DecodeU244Response(revData);
-    print_hex_drcom(drcom_keepalive_info2, 16);
+    print_hex_drcom(drcom_keepalive_info, 16);
 #endif
     if (revData[0] != 0x07 || revData[4] != 0x04)
         return -1;
@@ -648,8 +648,7 @@ int SendU38HeartBeat() {
         printf("0x%.2x ", pkt_data[i]);
     }*/
 
-    int revLen =
-            udp_send_and_rev(pkt_data, pkt_data_len, revData);
+    udp_send_and_rev(pkt_data, pkt_data_len, revData);
     if (revData[0] != 0x07 || revData[4] != 0x06)    // Start Response
         return -1;
     return 0;
@@ -992,7 +991,7 @@ void DecodeU244Response(uint8 *buf) {
 #if DRCOM_DEBUG_ON > 0
     for (int i = 0; i < buf[2]; ++i) {
         if (i && i % 7 == 0)printf("\n");
-        printf("0x%.2x  .", buf[i]);
+        printf("0x%.2x ", buf[i]);
     }
 #endif
 

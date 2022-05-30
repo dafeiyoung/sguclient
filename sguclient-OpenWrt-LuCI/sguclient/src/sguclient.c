@@ -227,7 +227,7 @@ void DrcomAuthenticationEntry() {
         ret = pthread_create(&dtid, NULL, DrComServerDaemon, NULL);
         if (0 != ret) {
             perror("Failed Creating Drcom Thread!");
-            exit_sguclientl();
+            exit_sguclient();
         } else printf("%s\tInfo: Drcom Thread Successfully Created.\n", getTime());
     } else return;
 }
@@ -240,7 +240,7 @@ void DrcomAuthenticationEntry() {
  *       Output:  无
  * =====================================================================================
  */
-void exit_sguclientl() {
+void exit_sguclient() {
     fprintf(stdout, "\n\n%s\tInfo: SGUClient exits!\n\n", getTime());
     exit(EXIT_FAILURE);
 }
@@ -267,7 +267,7 @@ void reStartDrcom(int sleep_time_sec) {
     int ret0 = pthread_cancel(dtid);//杀死线程
     if (0 != ret0) {
         perror("Failed Canceling Drcom Thread!");
-        exit_sguclientl();
+        exit_sguclient();
     } else printf("%s\tInfo: Drcom Thread Successfully Canceled.\n", getTime());
 
     pthread_join(dtid, (void **) &ret0);//线程回收
@@ -275,7 +275,7 @@ void reStartDrcom(int sleep_time_sec) {
     int ret1 = pthread_create(&dtid, NULL, DrComServerDaemon, NULL);
     if (0 != ret1) {
         perror("Failed Creating Drcom Thread!");
-        exit_sguclientl();
+        exit_sguclient();
     } else printf("%s\tInfo: Drcom Thread Successfully Created.\n", getTime());
 
     sleep(sleep_time_sec);
@@ -309,7 +309,7 @@ void auto_reconnect(int sleep_time_sec, char type) {   //会有三种情况进�
 
             if (reconnect_times >= 5) {   //timeout和EAP_Failure重连总次数超过5次
                 printf("\n%s\tInfo: SGUClient tried reconnect more than 5 times, and all failed.\n", getTime());
-                exit_sguclientl();
+                exit_sguclient();
             } else {
                 printf("%s\tInfo: To prevent accidental errors, program will automatically reconnect in 5 secs...\n",
                        getTime());
@@ -346,7 +346,7 @@ void auto_reconnect(int sleep_time_sec, char type) {   //会有三种情况进�
             if (reconnect_times >= 5) {   //timeout和EAP_Failure重连总次数超过5次
                 fprintf(stdout, "\n%s\tInfo: SGUClient tried reconnect more than 5 times, and all failed.\n",
                         getTime());
-                exit_sguclientl();
+                exit_sguclient();
             } else {
                 fprintf(stdout,
                         "%s\tInfo: To prevent accidental errors, program will automatically reconnect in 5 secs...\n",
@@ -494,7 +494,7 @@ enum EAPType get_eap_type(const struct eap_header *eap_header) {
             eap_header->eap_t,
             eap_header->eap_id,
             eap_header->eap_op);
-    exit_sguclientl();
+    exit_sguclient();
     return ERROR;
 }
 
@@ -570,7 +570,7 @@ void action_by_eap_type(enum EAPType pType,
 
             case EAP_NOTIFICATION:
                 printNotification(header);
-                exit_sguclientl();
+                exit_sguclient();
                 break;
 
             default:
@@ -632,7 +632,7 @@ void action_by_eap_type(enum EAPType pType,
 
             case EAP_NOTIFICATION:
                 printNotification(header);
-                exit_sguclientl();
+                exit_sguclient();
                 break;
 
             default:
@@ -1054,12 +1054,12 @@ void init_info() {
     if (username == NULL || password == NULL) {
         fprintf(stderr, "Error: NO Username(-u) or Password(-p) promoted.\n"
                         "Try sguclient --help for usage.\n");
-        exit_sguclientl();
+        exit_sguclient();
     }
     if (dev == NULL) {
         fprintf(stderr, "Error: NO device (--device) promoted.\n"
                         "Try sguclient --help for usage.\n");
-        exit_sguclientl();
+        exit_sguclient();
     }
 
     username_length = strlen(username);
@@ -1083,13 +1083,13 @@ void init_pcap() {
 
     if (pcapHandle == NULL) {
         fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
-        exit_sguclientl();
+        exit_sguclient();
     }
 
     /* make sure we're capturing on an Ethernet device [2] */
     if (pcap_datalink(pcapHandle) != DLT_EN10MB) {
         fprintf(stderr, "%s is not an Ethernet\n", dev);
-        exit_sguclientl();
+        exit_sguclient();
     }
 
     /* construct the filter string */
@@ -1103,14 +1103,14 @@ void init_pcap() {
     if (pcap_compile(pcapHandle, &fp, filter_exp, 1, 0) == -1) {
         fprintf(stderr, "Couldn't parse filter %s: %s\n",
                 filter_exp, pcap_geterr(pcapHandle));
-        exit_sguclientl();
+        exit_sguclient();
     }
 
     /* apply the compiled filter */
     if (pcap_setfilter(pcapHandle, &fp) == -1) {
         fprintf(stderr, "Couldn't install filter %s: %s\n",
                 filter_exp, pcap_geterr(pcapHandle));
-        exit_sguclientl();
+        exit_sguclient();
     }
     pcap_freecode(&fp);
 
@@ -1129,14 +1129,14 @@ void get_local_mac() {
     int sock;
     if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         perror("socket");
-        exit_sguclientl();
+        exit_sguclient();
     }
     strncpy(ifr.ifr_name, dev, sizeof(ifr.ifr_name));
     ifr.ifr_name[sizeof(ifr.ifr_name) - 1] = '\0';
 
     if (ioctl(sock, SIOCGIFHWADDR, &ifr) < 0) {
         perror("ioctl");
-        exit_sguclientl();
+        exit_sguclient();
     }
     memcpy(local_mac, ifr.ifr_hwaddr.sa_data, ETHER_ADDR_LEN);
 }
@@ -1295,11 +1295,11 @@ void init_arguments(int *argc, char ***argv) {
             case '?':
                 if (optopt == 'u' || optopt == 'p' || optopt == 'g' || optopt == 'd')
                     fprintf(stderr, "Option -%c requires an argument.\n", optopt);
-                exit_sguclientl();
+                exit_sguclient();
                 break;
             default:
                 fprintf(stderr, "Unknown option character `\\x%x'\n", c);
-                exit_sguclientl();
+                exit_sguclient();
         }
     }
 }
