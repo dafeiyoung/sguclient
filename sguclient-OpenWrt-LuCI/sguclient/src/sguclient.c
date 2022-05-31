@@ -511,7 +511,7 @@ void action_by_eap_type(enum EAPType pType,
                         const uint8_t *packet) {
     if (isp_type == 'D')                //电信部分
     {
-        if ( pType == 9 ){  //防止drcom发包发一半之后掉线，在drcom发包的提示日志后面输出了下面的语句，导致的日志格式错乱
+        if ( pType == EAP_FAILURE ){  //防止drcom发包发一半之后掉线，在drcom发包的提示日志后面输出了下面的语句，导致的日志格式错乱
             printf("\n\n");
         }
         printf("%s\tInfo: <CTCC>Received PackType: %d.\n", getTime(), pType);
@@ -578,7 +578,7 @@ void action_by_eap_type(enum EAPType pType,
         }
     } else if (isp_type == 'Y')               //移动部分
     {
-        if ( pType == 9 ){  //防止drcom发包发一半之后掉线，在drcom发包的提示日志后面输出了下面的语句，导致的日志格式错乱
+        if ( pType == EAP_FAILURE ){  //防止drcom发包发一半之后掉线，在drcom发包的提示日志后面输出了下面的语句，导致的日志格式错乱
             printf("\n\n");
         }
         printf("%s\tInfo: <CMCC>Received PackType: %d .\n", getTime(), pType);
