@@ -93,18 +93,18 @@ int program_running_check() {
     //尝试获得文件锁
     if (fcntl(hLockFile, F_GETLK, &fl) < 0) {
         perror("fcntl_get");
-        exit(EXIT_FAILURE);
+        exit_sguclient();
     }
 
     if (exit_flag) {
         if (fl.l_type != F_UNLCK) {
             if (kill(fl.l_pid, SIGINT) == -1)
                 perror("kill");
-            fprintf(stdout, "%s\tInfo: Kill Signal Sent to PID %d.\n", getTime(), fl.l_pid);
+            fprintf(stdout, "%s\tInfo: Kill Signal Sent to PID %d .\n", getTime(), fl.l_pid);
         } else
             fprintf(stderr, "%s\tInfo: NO SGUClient Running.\n", getTime());
         close(hLockFile);
-        exit(EXIT_FAILURE);
+        exit_sguclient();
     }
 
     //没有锁，则给文件加锁，否则返回锁着文件的进程pid
@@ -154,7 +154,7 @@ void flock_reg() {
  * =====================================================================================
  */
 static void signal_interrupted(int signo) {
-    fprintf(stdout, "\n\n%s\tInfo: USER Interrupted. \n", getTime());
+    fprintf(stdout, "\n\n%s\tInfo: USER Interrupted.\n", getTime());
     send_eap_packet(EAPOL_LOGOFF);
     fprintf(stdout, "%s\tInfo: The program successfully exited.\n\n", getTime());
     pcap_breakloop(pcapHandle);
@@ -179,10 +179,10 @@ int main(int argc, char **argv) {
     //检测程序的副本运行（文件锁）
     int ins_pid;
     if ((ins_pid = program_running_check())) {
-        fprintf(stderr, "%s\t@@ERROR: SGUClient Already Running with PID %d.\n", getTime(), ins_pid);
+        fprintf(stderr, "%s\tError Report: SGUClient Already Running with PID %d .\n", getTime(), ins_pid);
         fprintf(stdout, "%s\tInfo: run 'sudo kill %d' or %s -k before re-running SGUClient'.\n\n", getTime(), ins_pid,
                 argv[0]);
-        exit(EXIT_FAILURE);
+        exit_sguclient();
     }
 
     //初始化用户信息

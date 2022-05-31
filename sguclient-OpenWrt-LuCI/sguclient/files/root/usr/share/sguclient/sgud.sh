@@ -7,7 +7,8 @@ clean_log() {
 
   local logsnum=$(cat $LOG_FILE 2>/dev/null | wc -l)
   [ "$logsnum" -gt 200 ] && {
-    echo -e "$(date "+%Y-%m-%d %H:%M:%S")\t日志文件过长，清空处理！" >$LOG_FILE
+    log=$(tail -n 10 $LOG_FILE 2>&1) # 清空日志时，保留十行日志
+    echo -e "$(date "+%Y-%m-%d %H:%M:%S")\t日志文件过长，清空处理！\n\n$log\c" >$LOG_FILE
   }
 
 }
@@ -26,11 +27,12 @@ fi
 autorestart=$(echo "$@" | grep "\-auto")
 debug=$(echo "$@" | grep "\-debug")
 
-#调试模式下每次启动都清空一次日志(便于查看日志)
-if [ -n "$debug" ]; then
-  rm -f $LOG_FILE >/dev/null 2>&1
-  echo "用户启动调试模式,日志清空一次." >/dev/null 2>&1
-fi
+# 每次启动sgu时保留20行旧日志(便于查看新日志)
+logsnum=$(cat $LOG_FILE 2>/dev/null | wc -l)
+[ "$logsnum" -gt 20 ] && {
+  log=$(tail -n 20 $LOG_FILE 2>&1) # 保留20行日志
+  echo -e "$log\n\n" >$LOG_FILE
+}
 
 # 首次启动sguclient
 /bin/sguclient "$@" 1>>$LOG_FILE 2>&1 &
@@ -53,7 +55,7 @@ while true; do
     fi
   fi
 
-  #清理日志
+  # 清理日志
   if [ -n "$debug" ]; then
     echo "用户启动调试模式,日志将不会自动清空." >/dev/null 2>&1
   else

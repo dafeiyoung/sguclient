@@ -1,5 +1,8 @@
-msgid "ShaoGuan University 3rd Party Network Authentication Client.<br/><b><font color=\"red\">QQ Group: 638138948 <br/>This is an opensource software. You can get the software and sorce code from <a href=\"https://github.com/FurryAcetylCoA/sguclient\">HERE</a> for free.</font></b>"
-msgstr "韶关学院第三方校园网拨号器<br/><b><font color=\"red\">QQ群: 638138948 <br/>这是一个开源软件.您可以在<a href=\"https://github.com/FurryAcetylCoA/sguclient\">此处</a>免费获得本软件及其源码</font></b>"
+msgid "ShaoGuan University 3rd Party Network Authentication Client.&nbsp;&nbsp;&nbsp;&nbsp;"
+msgstr "韶关学院第三方校园网拨号器&nbsp;&nbsp;&nbsp;&nbsp;"
+
+msgid "QQ Group:&nbsp;"
+msgstr "QQ 群：&nbsp;"
 
 msgid "Enable"
 msgstr "启用"
