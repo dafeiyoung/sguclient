@@ -13,7 +13,7 @@ You may obtain a copy of the License at
 require("luci.sys")
 
 m = Map("sguclient", translate("SGUClient LuCI"), translate("ShaoGuan University 3rd Party Network Authentication Client.&nbsp;&nbsp;&nbsp;&nbsp;")
-        .. [[<a href="https://github.com/dafeiyoung/sguclient" target="_blank">"]]
+        .. [[<a href="https://github.com/dafeiyoung/sguclient" target="_blank">]]
         .. translate("Github")
         .. [[<br/></a>]]
         .. translate("QQ Group:&nbsp;")
