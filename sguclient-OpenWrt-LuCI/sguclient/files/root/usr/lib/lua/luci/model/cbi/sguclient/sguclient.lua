@@ -16,7 +16,7 @@ m = Map("sguclient", translate("SGUClient LuCI"), translate("ShaoGuan University
         .. [[<a href="https://github.com/dafeiyoung/sguclient" target="_blank">]]
         .. translate("Github")
         .. [[</a><br/>]]
-        .. translate("QQ Group:&nbsp;")
+        .. translate("QQ Group:")
         .. [[<a href="https://jq.qq.com/?_wv=1027&k=C9jldpAy" style='color:red' target="_blank">]]
         .. translate("638138948")
         .. [[</a>]]
