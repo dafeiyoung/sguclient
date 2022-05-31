@@ -1,8 +1,11 @@
-msgid "ShaoGuan University 3rd Party Network Authentication Client.&nbsp;&nbsp;&nbsp;&nbsp;"
-msgstr "韶关学院第三方校园网拨号器&nbsp;&nbsp;&nbsp;&nbsp;"
+msgid "ShaoGuan University 3rd Party Network Authentication Client"
+msgstr "韶关学院第三方校园网拨号器"
+
+msgid "You can get the software and source code from"
+msgstr "SGUClient 是免费、开源软件，用户无需为其支付任何费用！开源链接:"
 
 msgid "QQ Group:"
-msgstr "QQ 群："
+msgstr "QQ 群:"
 
 msgid "Enable"
 msgstr "启用"
