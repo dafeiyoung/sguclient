@@ -1,6 +1,9 @@
 require("luci.sys")
 
-m = Map("sguclient", translate("SGUClient Log"), translate("Log file:/var/log/sguclient.log"))
+m = Map("sguclient", translate("SGUClient Log"), translate("Log file:")
+        .. [[&nbsp;]]
+        .. translate("/var/log/sguclient.log")
+)
 
 s = m:section(TypedSection, "login", "")  --这里和上面的map一定要能对应到一个已经存在的配置文件的配置字段
 s.addremove = false

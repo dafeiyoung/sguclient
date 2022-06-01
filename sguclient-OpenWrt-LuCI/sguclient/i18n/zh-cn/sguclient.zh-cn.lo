@@ -63,3 +63,6 @@ msgstr "请选择你的内网认证网卡"
 
 msgid "Log"
 msgstr "日志"
+
+msgid "Log file:"
+msgstr "日志路径:"
